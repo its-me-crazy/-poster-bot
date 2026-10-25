@@ -162,6 +162,7 @@ import sqlite3
 # Support : @Coders_Grp 
 # ------------------------ #
 
+from datetime import datetime
 from flask import Flask, send_file, request
 from telebot.types import InlineKeyboardMarkup, InlineKeyboardButton
 from PIL import Image, ImageDraw, ImageFont, ImageFilter, ImageOps
@@ -1190,10 +1191,10 @@ def handle_airing_command(message):
         bot.reply_to(message, "⚠️ <b>Usage:</b> <code>/airing [Anime Name]</code>\n<i>Example:</i> <code>/airing Black Clover Season 2</code>", parse_mode="HTML")
         return
 
-    status_msg = bot.reply_to(message, f"<b><i>Searching airing status for <code>{html.escape(query)}</code>...</i></b>", parse_mode="HTML")
+    status_msg = bot.reply_to(message, f"<b><i>Searching official airing data for <code>{html.escape(query)}</code>...</i></b>", parse_mode="HTML")
 
-    # AniList GraphQL Query
-    graphql_query = """
+    # 1. Fetch from AniList GraphQL for accurate airing schedules & season/episode info
+    anilist_query = """
     query ($search: String) {
       Media (search: $search, type: ANIME) {
         id
@@ -1203,6 +1204,9 @@ def handle_airing_command(message):
           native
         }
         status
+        season
+        seasonYear
+        format
         nextAiringEpisode {
           airingAt
           timeUntilAiring
@@ -1215,26 +1219,37 @@ def handle_airing_command(message):
     try:
         res = session.post(
             "https://graphql.anilist.co", 
-            json={'query': graphql_query, 'variables': {'search': query}}, 
+            json={'query': anilist_query, 'variables': {'search': query}}, 
             timeout=5
         ).json()
         
         media = res.get("data", {}).get("Media")
         if not media:
-            bot.edit_message_text(f"‼️ No anime found for <b>{html.escape(query)}</b>.", message.chat.id, status_msg.message_id, parse_mode="HTML")
+            bot.edit_message_text(f"‼️ No official anime found for <b>{html.escape(query)}</b>.", message.chat.id, status_msg.message_id, parse_mode="HTML")
             return
 
-        title_romaji = media["title"].get("romaji", query)
+        title_romaji = media["title"].get("romaji") or media["title"].get("english") or query
         title_native = media["title"].get("native", "")
         next_ep = media.get("nextAiringEpisode")
         status = media.get("status", "UNKNOWN")
+        
+        # Determine season info dynamically from official metadata or query fallback
+        season_num = "1"
+        if media.get("season"):
+            season_num = media.get("season").capitalize()
+        # If user query specifies a season number (e.g. "Season 2"), extract it automatically
+        import re
+        season_match = re.search(r'(?:season|s)\s*(\d+)', query, re.IGNORECASE)
+        if season_match:
+            season_num = season_match.group(1)
 
         title_display = f"<b>{html.escape(title_romaji)}</b>"
         if title_native:
             title_display += f" (<i>{html.escape(title_native)}</i>)"
 
+        # Episode info calculation
         if next_ep:
-            ep_num = next_ep["episode"]
+            ep_num = str(next_ep["episode"])
             seconds_left = next_ep["timeUntilAiring"]
 
             days, rem = divmod(seconds_left, 86400)
@@ -1242,10 +1257,29 @@ def handle_airing_command(message):
             mins, _ = divmod(rem, 60)
 
             time_str = f"{days}d {hours}h {mins}m"
-            airing_text = (
-                f"{title_display}\n\n"
-                f"📡 <b>Episode {ep_num} ᴀɪʀs ɪɴ {time_str}</b>"
-            )
+            airing_status_str = f"Episode {ep_num} ᴀɪʀs ɪɴ {time_str}"
+        else:
+            ep_num = "N/A (Completed/Ended)"
+            airing_status_str = "FINISHED AIRING" if status == "FINISHED" else "NOT YET RELEASED / OFF-SEASON"
+
+        # Build formatted output text
+        airing_text = (
+            f"Title : {title_display}\n\n"
+            f" ›› Season : <code>{season_num}</code>\n"
+            f" ›› Episode  : <code>{ep_num}</code>\n"
+            f" ›› Audio : Japanese [Eng-Sub]\n"
+            f" ›› Airing Episode Soon  : <b>{airing_status_str}</b>"
+        )
+
+        # Create Close Button markup
+        markup = InlineKeyboardMarkup()
+        markup.add(InlineKeyboardButton(text="• Cʟᴏsᴇ •", callback_data="help_close"))
+
+        bot.delete_message(message.chat.id, status_msg.message_id)
+        bot.send_message(message.chat.id, airing_text, parse_mode="HTML", reply_markup=markup)
+
+    except Exception as e:
+        bot.edit_message_text(f"⚠️ Error fetching from official APIs: <code>{html.escape(str(e))}</code>", message.chat.id, status_msg.message_id, parse_mode="HTML")
         else:
             status_str = "FINISHED AIRING" if status == "FINISHED" else "NOT YET RELEASED / RELEASING"
             airing_text = (
@@ -1273,9 +1307,16 @@ def handle_set_branding(message):
     if database.is_banned(user_id):
         return
 
+    # Split command text to extract the user's custom branding input
     args = message.text.split(maxsplit=1)
+    
     if len(args) < 2:
-        current_brand = database.get_user_branding(user_id)
+        # Fetch current branding from the database (make sure database.py handles this table/column properly)
+        try:
+            current_brand = database.get_user_branding(user_id) or "None Set"
+        except Exception:
+            current_brand = "None Set"
+
         bot.reply_to(
             message,
             f"🎨 <b><u>Custom Poster Branding</u></b>\n\n"
@@ -1290,12 +1331,16 @@ def handle_set_branding(message):
         bot.reply_to(message, "⚠️ Branding text is too long! Keep it under 30 characters.", parse_mode="HTML")
         return
 
-    database.set_user_branding(user_id, new_branding)
-    bot.reply_to(
-        message, 
-        f"✅ <b>Successfully updated your poster branding to:</b> <code>{html.escape(new_branding)}</code>", 
-        parse_mode="HTML"
-    )
+    try:
+        # Save the new branding into your database
+        database.set_user_branding(user_id, new_branding)
+        bot.reply_to(
+            message, 
+            f"✅ <b>Successfully updated your poster branding to:</b> <code>{html.escape(new_branding)}</code>", 
+            parse_mode="HTML"
+        )
+    except Exception as e:
+        bot.reply_to(message, f"⚠️ Failed to update branding due to a database error: {e}", parse_mode="HTML")
 
 # ------------------------ #
 # Don't Remove My Credits
