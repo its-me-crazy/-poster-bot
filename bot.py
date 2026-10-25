@@ -1224,13 +1224,13 @@ def handle_set_branding(message):
 # Support : @Coders_Grp 
 # ------------------------ #
 
-@bot.message_handler(commands=['search', 'find'])
+@bot.message_handler(commands=['search'])
 def handle_search_command(message):
     user_id = message.from_user.id
     if database.is_banned(user_id):
         return
 
-    query = message.text.replace("/search", "").replace("/find", "").strip()
+    query = message.text.replace("/search", "").strip()
     if not query:
         bot.reply_to(message, "<b>Usage:</b> <code>/search [title]</code>", parse_mode="HTML")
         return
@@ -1251,41 +1251,6 @@ def handle_ping(message):
     end_time = time.time()
     ping_time = round((end_time - start_time) * 1000, 2)
     bot.edit_message_text(f"🏓 <b>Pong!</b>\n⚡ <b>Latency:</b> <code>{ping_time} ms</code>", message.chat.id, msg.message_id, parse_mode="HTML")
-
-# ------------------------ #
-# Don't Remove My Credits
-# Owner: @Mr_Mohammed_29
-# Updates: @Aero_Unity 
-# Support : @Coders_Grp 
-# ------------------------ #
-
-@bot.message_handler(commands=['settings'])
-def handle_settings(message):
-    user_id = message.from_user.id
-    if user_id != OWNER_ID:
-        bot.reply_to(message, "🔒 <b>Access Denied: Owner Only</b>", parse_mode="HTML")
-        return
-
-    status = database.get_global_pm_search()
-    status_str = "🟢 ENABLED" if status else "🔴 DISABLED"
-
-    settings_text = (
-        "⚙️ <b><u>Admin Settings Panel</u></b>\n\n"
-        f"• <b>PM Search:</b> {status_str}\n"
-        f"• <b>Owner ID:</b> <code>{OWNER_ID}</code>"
-    )
-
-    markup = InlineKeyboardMarkup()
-    markup.row(
-        InlineKeyboardButton("🔄 Toggle PM Search", callback_data="toggle_pm_setting"),
-        InlineKeyboardButton("📊 Stats", callback_data="btn_stats")
-    )
-    markup.row(
-        InlineKeyboardButton("📢 Updates", url="https://t.me/Aero_Unity"),
-        InlineKeyboardButton("• Close •", callback_data="help_close")
-    )
-    
-    bot.send_message(message.chat.id, settings_text, parse_mode="HTML", reply_markup=markup)
 
 # ------------------------ #
 # Don't Remove My Credits
