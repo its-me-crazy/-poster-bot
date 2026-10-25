@@ -178,6 +178,34 @@ BOT_TOKEN = os.environ.get("BOT_TOKEN")
 TMDB_API_KEY = os.environ.get("TMDB_API_KEY")
 POSTER_GROUP_URL = os.environ.get("POSTER_GROUP_URL", "https://t.me/+VXY_za8DNjQzYmVl")
 
+ANILIST_API_URL = "https://graphql.anilist.co"
+
+ANILIST_MANGA_QUERY = """
+query ($search: String) {
+  Media (search: $search, type: MANGA) {
+    id
+    title {
+      romaji
+      english
+      native
+    }
+    format
+    countryOfOrigin
+    isAdult
+    chapters
+    genres
+    description(asHtml: false)
+    averageScore
+    status
+    coverImage {
+      extraLarge
+      large
+    }
+    bannerImage
+  }
+}
+"""
+
 bot = telebot.TeleBot(BOT_TOKEN)
 app = Flask(__name__)
 
@@ -2179,146 +2207,118 @@ def manga_command_handler(message):
         return
 
     status_msg = bot.reply_to(message, "⚙️ <b>ɢᴇɴᴇʀᴀᴛɪɴɢ ᴍᴀɴɢᴀ ᴄᴀʀᴅ, ᴡᴀɪᴛ a sec...</b>", parse_mode="HTML")
-        
-    search_url = f"https://api.themoviedb.org/3/search/tv?api_key={TMDB_API_KEY}&query={requests.utils.quote(query)}&include_adult=true"
-    res = session.get(search_url, timeout=5).json()
-    results = res.get("results", [])
-
-    manga_results = []
-    for item in results:
-        orig_lang = str(item.get("original_language", "")).lower()
-        genre_ids = item.get("genre_ids", [])
-        overview = str(item.get("overview", "")).lower()
-        title_str = str(item.get("name", "")).lower()
-        
-        if (16 in genre_ids) or orig_lang in ["ja", "ko", "zh"] or "webtoon" in overview or "manga" in overview or "manhwa" in overview:
-            manga_results.append(item)
-
-    if not manga_results and results:
-        manga_results = results
-
-    if not manga_results:
-        bot.reply_to(message, f"‼️ No manga/manhwa results found for <b>{html.escape(query)}</b>", parse_mode="HTML")
-        try:
-            bot.delete_message(message.chat.id, status_msg.message_id)
-        except Exception:
-            pass
-        return
-
-    item = manga_results[0]
-    item_id = str(item.get("id"))
-    media_type = item.get("media_type", "tv")
-    title = item.get("name") or item.get("title") or query
-    endpoint = "tv" if media_type == "tv" else "movie"
-    
-    details_url = f"https://api.themoviedb.org/3/{endpoint}/{item_id}?api_key={TMDB_API_KEY}&append_to_response=images,keywords"
-    det_res = session.get(details_url, timeout=5).json()
-    
-    orig_lang = det_res.get("original_language", "ja").lower()
-    adult = det_res.get("adult", False)
-    genres_list = [g["name"] for g in det_res.get("genres", [])]
-    
-    keywords_list = [kw.get("name", "").lower() for kw in det_res.get("keywords", {}).get("results", [])]
-    full_text_check = (title + " " + det_res.get("overview", "")).lower()
-
-    if adult or any(kw in ["erotica", "hentai", "ecchi", "adult comic", "pornhwa"] for kw in keywords_list) or any(g.lower() in ["erotica", "hentai", "ecchi"] for g in genres_list):
-        detected_type = "Pornhwa" if (orig_lang == "ko" or "manhwa" in full_text_check) else "Adult Manga"
-    elif "manhwa" in full_text_check or "webtoon" in full_text_check or orig_lang == "ko":
-        detected_type = "Manhwa"
-    elif "manhua" in full_text_check or orig_lang == "zh":
-        detected_type = "Manhua"
-    elif orig_lang == "ja" or "manga" in full_text_check:
-        detected_type = "Manga"
-    else:
-        detected_type = "Manga"
-
-    vote_avg = det_res.get("vote_average", 0)
-    rating_pct = f"{int(vote_avg * 10)}%" if vote_avg else "88%"
-    genres_str = ", ".join(genres_list) if genres_list else "Romance, Drama"
-    status_str = det_res.get("status", "Releasing")
-    
-    episodes = det_res.get("number_of_episodes") or det_res.get("number_of_seasons")
-    chapters_str = f"{episodes * 25}+" if episodes and episodes < 30 else "318+"
-
-    images = det_res.get("images", {})
-    artworks = [f"https://image.tmdb.org/t/p/original{i['file_path']}" for i in images.get("backdrops", [])[:8]]
-    posters = [f"https://image.tmdb.org/t/p/w500{i['file_path']}" for i in images.get("posters", [])[:3]]
-
-    if not artworks:
-        path = item.get("backdrop_path") or item.get("poster_path")
-        artworks = [f"https://image.tmdb.org/t/p/original{path}"] if path else ["https://graph.org/file/faf795187aa693e1024a4-746b376c8dcc889d4f.jpg"]
-
-    if not posters:
-        posters = [artworks[0], artworks[0]]
-
-    logo_url = get_tmdb_logo_url(item_id, endpoint)
-    synopsis = det_res.get("overview") or item.get("overview") or "No synopsis available."
-
-    search_id = str(message.message_id)
-    SEARCH_CACHE[search_id] = {
-        "title": title,
-        "type": detected_type,
-        "genres": genres_str,
-        "rating": rating_pct,
-        "status": status_str,
-        "chapters": chapters_str,
-        "synopsis": synopsis,
-        "artworks": artworks,
-        "posters": posters,
-        "logo_url": logo_url,
-        "file_ids": {}
-    }
-
-    current_index = 0
-    total_pages = len(artworks)
-
-    caption_text = (
-        f"<b>{html.escape(title)}</b> ❞\n\n"
-        f"» <b>Tʏᴘᴇ :</b> {detected_type}\n"
-        f"» <b>Aᴠᴇʀᴀɢᴇ Rᴀᴛɪɴɢ :</b> {rating_pct}\n"
-        f"» <b>Sᴛᴀᴛᴜs :</b> {status_str}\n"
-        f"» <b>Cʜᴀᴘᴛᴇʀs :</b> {chapters_str}\n"
-        f"» <b>Gᴇɴʀᴇs :</b> {html.escape(genres_str)}\n\n"
-        f"▶ <u><b>Sʏɴᴏᴘsɪs</b></u>\n"
-        f"<b>➔</b> <i>{html.escape(synopsis[:400])}...</i> ❞"
-    )
 
     try:
-        img_bytes = session.get(artworks[current_index], timeout=5).content
-        p_bytes_list = []
-        for p_url in posters[:3]:
-            try:
-                p_bytes_list.append(session.get(p_url, timeout=4).content)
-            except Exception:
-                p_bytes_list.append(img_bytes)
+        
+        response = requests.post(
+            ANILIST_API_URL, 
+            json={'query': ANILIST_MANGA_QUERY, 'variables': {'search': query}},
+            timeout=8
+        )
+        data = response.json()
+        media = data.get("data", {}).get("Media")
 
-        # Retrieve user's custom branding dynamically set via /mybranding
-        user_branding = database.get_user_branding(user_id)
+        if not media:
+            bot.reply_to(message, f"‼️ No manga/manhwa/pornhwa results found for <b>{html.escape(query)}</b>", parse_mode="HTML")
+            try:
+                bot.delete_message(message.chat.id, status_msg.message_id)
+            except Exception:
+                pass
+            return
+
+        title = media.get("title", {}).get("english") or media.get("title", {}).get("romaji") or query
+        genres_list = media.get("genres", ["Romance", "Drama"])
+        synopsis = media.get("description", "No synopsis available.")
+        if synopsis:
+            synopsis = synopsis.replace("<br>", "\n").replace("<i>", "").replace("</i>", "").replace("<b>", "").replace("</b>", "")
+
+        country = media.get("countryOfOrigin", "JP")
+        is_adult = media.get("isAdult", False)
+
+        if is_adult and country == "KR":
+            detected_type = "Pornhwa"
+        elif country == "KR":
+            detected_type = "Manhwa"
+        elif country == "CN":
+            detected_type = "Manhua"
+        else:
+            detected_type = "Manga"
+
+        score = media.get("averageScore")
+        rating_pct = f"{score}%" if score else "88%"
+        vote_avg = round(score / 10.0, 1) if score else 8.4
+        
+        status_str = media.get("status", "RELEASING").replace("_", " ").title()
+        ch_count = media.get("chapters")
+        chapters_str = f"{ch_count}+(CH)" if ch_count else "318+(CH)"
+
+        cover_url = media.get("coverImage", {}).get("extraLarge") or media.get("coverImage", {}).get("large")
+        banner_url = media.get("bannerImage") or cover_url
+
+        artworks = [banner_url] if banner_url else [cover_url]
+        posters = [cover_url, cover_url]
+
+        img_bytes = requests.get(cover_url, timeout=5).content if cover_url else None
+        p_bytes_list = [img_bytes, img_bytes]
+
+        search_id = str(message.message_id)
+        SEARCH_CACHE[search_id] = {
+            "title": title,
+            "type": detected_type,
+            "genres": ", ".join(genres_list),
+            "rating": rating_pct,
+            "status": status_str,
+            "chapters": chapters_str,
+            "synopsis": synopsis,
+            "artworks": artworks,
+            "posters": posters,
+            "logo_url": None,
+            "file_ids": {}
+        }
+
+        caption_text = (
+            f"<b>{html.escape(title)}</b> ❞\n\n"
+            f"» <b>Tʏᴘᴇ :</b> {detected_type}\n"
+            f"» <b>Aᴠᴇʀᴀɢᴇ Rᴀᴛɪɴɢ :</b> {rating_pct}\n"
+            f"» <b>Sᴛᴀᴛᴜs :</b> {status_str}\n"
+            f"» <b>Cʜᴀᴘᴛᴇʀs :</b> {chapters_str}\n"
+            f"» <b>Gᴇɴʀᴇs :</b> {html.escape(', '.join(genres_list))}\n\n"
+            f"▶ <u><b>Sʏɴᴏᴘsɪs</b></u>\n"
+            f"<b>➔</b> <i>{html.escape(synopsis[:400])}...</i> ❞"
+        )
+
+        user_branding = database.get_user_branding(user_id) or "Manga Aero"
 
         card_io = generate_custom_media_card(
             poster_bytes=img_bytes,
             portrait_bytes_list=p_bytes_list,
             title=title,
-            genres=genres_list if isinstance(genres_list, list) else ["Romance", "Drama"],
+            genres=genres_list,
             synopsis=synopsis,
-            rating_val=round(vote_avg, 1) if vote_avg else "8.4",
-            logo_url=logo_url,
-            branding=user_branding  
+            rating_val=vote_avg,
+            logo_url=None,
+            branding=user_branding,
+            extra_meta={
+                "media_format": detected_type.upper(),
+                "status": status_str.upper(),
+                "vote_average": vote_avg
+            }
         )
 
         markup = InlineKeyboardMarkup()
         markup.row(
-            InlineKeyboardButton(text="• ᴘʀᴇᴠ •", callback_data=f"media_card_{search_id}_{current_index-1}"),
-            InlineKeyboardButton(text=f"01/{total_pages:02d}", callback_data="noop"),
-            InlineKeyboardButton(text="• ɴᴇxᴛ •", callback_data=f"media_card_{search_id}_{current_index+1}")
+            InlineKeyboardButton(text="• ᴘʀᴇᴠ •", callback_data=f"media_card_{search_id}_0"),
+            InlineKeyboardButton(text="01/01", callback_data="noop"),
+            InlineKeyboardButton(text="• ɴᴇxᴛ •", callback_data=f"media_card_{search_id}_0")
         )
-        markup.row(InlineKeyboardButton(text="• ᴄᴀɴᴄᴇʟ•", callback_data="cancel_session"))
+        markup.row(InlineKeyboardButton(text="• ᴄᴀɴᴄᴇʟ •", callback_data="cancel_session"))
 
         try:
             bot.delete_message(message.chat.id, status_msg.message_id)
         except Exception:
             pass
 
+        card_io.seek(0)
         bot.send_photo(
             chat_id=message.chat.id,
             photo=card_io,
@@ -2327,7 +2327,11 @@ def manga_command_handler(message):
             reply_markup=markup
         )
     except Exception as e:
-        bot.reply_to(message, f"❌ Error generating manga card: {e}", parse_mode="HTML")
+        try:
+            bot.delete_message(message.chat.id, status_msg.message_id)
+        except Exception:
+            pass
+        bot.reply_to(message, f"❌ Error generating manga card: <code>{html.escape(str(e))}</code>", parse_mode="HTML")
 
 # ------------------------ #
 # Don't Remove My Credits
