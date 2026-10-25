@@ -2844,7 +2844,8 @@ def generate_custom_media_card(poster_bytes, portrait_bytes_list, title, genres,
 # Support : @Coders_Grp 
 # ------------------------ #
 
-def send_style_poster_response(message, cmd, query, branding_name):
+def send_style_poster_response(message, cmd, query, branding_name=None):
+
     user_id = message.from_user.id
     
     if message.chat.type == "private" and user_id != OWNER_ID:
@@ -3012,7 +3013,7 @@ def send_style_poster_response(message, cmd, query, branding_name):
 
         logo_url = get_tmdb_logo_url(item_id, endpoint)
         
-        user_branding = database.get_user_branding(user_id) or "Aero Unity"
+        user_branding = database.get_user_branding(user_id) or branding_name or "Aero Unity"
         
         card_io = generate_custom_media_card(
             poster_bytes=img_bytes,
