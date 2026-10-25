@@ -1098,6 +1098,126 @@ def broadcast_unpin_handler(message):
 # Support : @Coders_Grp 
 # ------------------------ #
 
+@bot.message_handler(commands=['airing'])
+def handle_airing_command(message):
+    user_id = message.from_user.id
+    if database.is_banned(user_id):
+        return
+
+    query = message.text.replace("/airing", "").strip()
+    if not query:
+        bot.reply_to(message, "⚠️ <b>Usage:</b> <code>/airing [Anime Name]</code>\n<i>Example:</i> <code>/airing Black Clover Season 2</code>", parse_mode="HTML")
+        return
+
+    status_msg = bot.reply_to(message, f"<b><i>Searching airing status for <code>{html.escape(query)}</code>...</i></b>", parse_mode="HTML")
+
+    # AniList GraphQL Query
+    graphql_query = """
+    query ($search: String) {
+      Media (search: $search, type: ANIME) {
+        id
+        title {
+          romaji
+          english
+          native
+        }
+        status
+        nextAiringEpisode {
+          airingAt
+          timeUntilAiring
+          episode
+        }
+      }
+    }
+    """
+
+    try:
+        res = session.post(
+            "https://graphql.anilist.co", 
+            json={'query': graphql_query, 'variables': {'search': query}}, 
+            timeout=5
+        ).json()
+        
+        media = res.get("data", {}).get("Media")
+        if not media:
+            bot.edit_message_text(f"‼️ No anime found for <b>{html.escape(query)}</b>.", message.chat.id, status_msg.message_id, parse_mode="HTML")
+            return
+
+        title_romaji = media["title"].get("romaji", query)
+        title_native = media["title"].get("native", "")
+        next_ep = media.get("nextAiringEpisode")
+        status = media.get("status", "UNKNOWN")
+
+        title_display = f"<b>{html.escape(title_romaji)}</b>"
+        if title_native:
+            title_display += f" (<i>{html.escape(title_native)}</i>)"
+
+        if next_ep:
+            ep_num = next_ep["episode"]
+            seconds_left = next_ep["timeUntilAiring"]
+
+            days, rem = divmod(seconds_left, 86400)
+            hours, rem = divmod(rem, 3600)
+            mins, _ = divmod(rem, 60)
+
+            time_str = f"{days}d {hours}h {mins}m"
+            airing_text = (
+                f"{title_display}\n\n"
+                f"📡 <b>Episode {ep_num} ᴀɪʀs ɪɴ {time_str}</b>"
+            )
+        else:
+            status_str = "FINISHED AIRING" if status == "FINISHED" else "NOT YET RELEASED / RELEASING"
+            airing_text = (
+                f"{title_display}\n\n"
+                f"📌 <b>Status:</b> <code>{status_str}</code>\n"
+                "ℹ️ <i>No upcoming episode schedule found.</i>"
+            )
+
+        bot.delete_message(message.chat.id, status_msg.message_id)
+        bot.send_message(message.chat.id, airing_text, parse_mode="HTML")
+
+    except Exception as e:
+        bot.edit_message_text(f"⚠️ Error fetching airing status: <code>{html.escape(str(e))}</code>", message.chat.id, status_msg.message_id, parse_mode="HTML")
+
+# ------------------------ #
+# Don't Remove My Credits
+# Owner: @Mr_Mohammed_29
+# Updates: @Aero_Unity 
+# Support : @Coders_Grp 
+# ------------------------ #
+
+@bot.message_handler(commands=['mybranding', 'setbranding'])
+def handle_set_branding(message):
+    user_id = message.from_user.id
+    if database.is_banned(user_id):
+        return
+
+    # Extract text after command
+    args = message.text.split(maxsplit=1)
+    if len(args) < 2:
+        current_brand = database.get_user_branding(user_id)
+        bot.reply_to(
+            message,
+            f"🎨 <b><u>Custom Poster Branding</u></b>\n\n"
+            f"• <b>Current Branding:</b> <code>{html.escape(current_brand)}</code>\n\n"
+            "<b>Usage:</b> <code>/mybranding Your Custom Text</code> or <code>/setbranding Your Custom Text</code>",
+            parse_mode="HTML"
+        )
+        return
+
+    new_branding = args[1].strip()
+    if len(new_branding) > 30:
+        bot.reply_to(message, "⚠️ Branding text is too long! Keep it under 30 characters.", parse_mode="HTML")
+        return
+
+    database.set_user_branding(user_id, new_branding)
+    bot.reply_to(
+        message, 
+        f"✅ <b>Successfully updated your poster branding to:</b> <code>{html.escape(new_branding)}</code>", 
+        parse_mode="HTML"
+    )
+
+
 @bot.message_handler(commands=['search', 'find'])
 def handle_search_command(message):
     user_id = message.from_user.id
@@ -2908,7 +3028,8 @@ def send_style_poster_response(message, cmd, query, branding_name):
             p_bytes_list = [img_bytes, img_bytes]
 
         logo_url = get_tmdb_logo_url(item_id, endpoint)
-
+        user_branding = database.get_user_branding(message.from_user.id)
+        
         card_io = generate_custom_media_card(
             poster_bytes=img_bytes,
             portrait_bytes_list=p_bytes_list,
@@ -2917,7 +3038,7 @@ def send_style_poster_response(message, cmd, query, branding_name):
             synopsis=synopsis,
             rating_val=round(vote_avg, 1) if vote_avg else "8.4",
             logo_url=logo_url,
-            branding=branding_name,
+            branding=user_branding,
             extra_meta=extra_metadata
         )
 
