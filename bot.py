@@ -7,7 +7,7 @@
 
 HELP_PAGES = {
     1: {
-        "photo": "https://graph.org/file/cb707ebcf6e087d4a49c6-ce0dbf8bc97b6dd50b.jpg",
+        "photo": "https://telegra.ph/file/0fe5cde6f3847c191c36d-a589a93ae5275f73d2.jpg",
         "caption": (
             "<b>AniList Style — 1/8</b>\n"
             "──────────────────────────────\n"
