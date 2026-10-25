@@ -188,3 +188,36 @@ def remove_fsub_channel(channel):
             conn.close()
     except Exception:
         pass
+
+def set_user_branding(user_id, branding_text):
+    """Saves or updates custom poster branding for a specific user."""
+    conn = sqlite3.connect("database.db")
+    cursor = conn.cursor()
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS user_branding (
+            user_id INTEGER PRIMARY KEY,
+            branding TEXT
+        )
+    """)
+    cursor.execute("""
+        INSERT OR REPLACE INTO user_branding (user_id, branding) 
+        VALUES (?, ?)
+    """, (user_id, branding_text))
+    conn.commit()
+    conn.close()
+
+def get_user_branding(user_id):
+    """Retrieves custom branding for a user. Defaults to @Aero_Unity if not set."""
+    conn = sqlite3.connect("database.db")
+    cursor = conn.cursor()
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS user_branding (
+            user_id INTEGER PRIMARY KEY,
+            branding TEXT
+        )
+    """)
+    cursor.execute("SELECT branding FROM user_branding WHERE user_id = ?", (user_id,))
+    row = cursor.fetchone()
+    conn.close()
+    return row[0] if row else "@Aero_Unity"
+
