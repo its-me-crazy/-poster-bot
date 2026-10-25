@@ -2879,7 +2879,7 @@ def send_style_poster_response(message, cmd, query, branding_name):
     
     status_msg = bot.reply_to(
         message, 
-        f"⚙️ <b>Generating {style_label} poster for <code>{html.escape(query)}</code>, please wait...</b>", 
+        f" <b>Generating {style_label} poster for <code>{html.escape(query)}</code>, please wait...</b>", 
         parse_mode="HTML"
     )
     
@@ -3011,7 +3011,8 @@ def send_style_poster_response(message, cmd, query, branding_name):
             p_bytes_list = [img_bytes, img_bytes]
 
         logo_url = get_tmdb_logo_url(item_id, endpoint)
-        user_branding = database.get_user_branding(message.from_user.id)
+        
+        user_branding = database.get_user_branding(user_id) or "Aero Unity"
         
         card_io = generate_custom_media_card(
             poster_bytes=img_bytes,
@@ -3074,7 +3075,7 @@ def handle_ani(message):
     if not query:
         bot.reply_to(message, "⚠️ <b>Usage:</b> /ani\n<b>Example:</b> <code>/ani Naruto</code>", parse_mode="HTML")
         return
-    send_style_poster_response(message, "ani", query, "ANILIST ANIME")
+    send_style_poster_response(message, "ani", query)  # Removed hardcoded string
 
 @bot.message_handler(commands=['anim'])
 def handle_anim(message):
@@ -3082,7 +3083,7 @@ def handle_anim(message):
     if not query:
         bot.reply_to(message, "⚠️ <b>Usage:</b> /anim\n<b>Example:</b> <code>/anim Naruto</code>", parse_mode="HTML")
         return
-    send_style_poster_response(message, "anim", query, "ANILIST MANGA")
+    send_style_poster_response(message, "anim", query)
 
 @bot.message_handler(commands=['crun'])
 def handle_crun(message):
@@ -3090,7 +3091,7 @@ def handle_crun(message):
     if not query:
         bot.reply_to(message, "⚠️ <b>Usage:</b> /crun\n<b>Example:</b> <code>/crun Naruto</code>", parse_mode="HTML")
         return
-    send_style_poster_response(message, "crun", query, "CRUNCHYROLL")
+    send_style_poster_response(message, "crun", query)
 
 @bot.message_handler(commands=['net'])
 def handle_net(message):
@@ -3098,7 +3099,7 @@ def handle_net(message):
     if not query:
         bot.reply_to(message, "⚠️ <b>Usage:</b> /net\n<b>Example:</b> <code>/net Naruto</code>", parse_mode="HTML")
         return
-    send_style_poster_response(message, "net", query, "NETFLIX ANIME")
+    send_style_poster_response(message, "net", query)
 
 @bot.message_handler(commands=['netm'])
 def handle_netm(message):
@@ -3106,7 +3107,7 @@ def handle_netm(message):
     if not query:
         bot.reply_to(message, "⚠️ <b>Usage:</b> /netm\n<b>Example:</b> <code>/netm Naruto</code>", parse_mode="HTML")
         return
-    send_style_poster_response(message, "netm", query, "NETFLIX MANGA")
+    send_style_poster_response(message, "netm", query)
 
 @bot.message_handler(commands=['light'])
 def handle_light(message):
@@ -3114,7 +3115,7 @@ def handle_light(message):
     if not query:
         bot.reply_to(message, "⚠️ <b>Usage:</b> /light\n<b>Example:</b> <code>/light Naruto</code>", parse_mode="HTML")
         return
-    send_style_poster_response(message, "light", query, "ANIME AERO UNITY")
+    send_style_poster_response(message, "light", query)
 
 @bot.message_handler(commands=['lightm'])
 def handle_lightm(message):
@@ -3122,7 +3123,7 @@ def handle_lightm(message):
     if not query:
         bot.reply_to(message, "⚠️ <b>Usage:</b> /lightm\n<b>Example:</b> <code>/lightm Naruto</code>", parse_mode="HTML")
         return
-    send_style_poster_response(message, "lightm", query, "MANGA AERO LIGHTM")
+    send_style_poster_response(message, "lightm", query)
 
 @bot.message_handler(commands=['dark'])
 def handle_dark(message):
@@ -3130,7 +3131,7 @@ def handle_dark(message):
     if not query:
         bot.reply_to(message, "⚠️ <b>Usage:</b> /dark\n<b>Example:</b> <code>/dark Naruto</code>", parse_mode="HTML")
         return
-    send_style_poster_response(message, "dark", query, "WEBTOON FLIX")
+    send_style_poster_response(message, "dark", query)
 
 @bot.message_handler(commands=['darkm'])
 def handle_darkm(message):
@@ -3138,7 +3139,7 @@ def handle_darkm(message):
     if not query:
         bot.reply_to(message, "⚠️ <b>Usage:</b> /darkm\n<b>Example:</b> <code>/darkm Naruto</code>", parse_mode="HTML")
         return
-    send_style_poster_response(message, "darkm", query, "WEBTOON FLIX DARKM")
+    send_style_poster_response(message, "darkm", query)
 
 @bot.message_handler(commands=['netcr'])
 def handle_netcr(message):
@@ -3146,7 +3147,7 @@ def handle_netcr(message):
     if not query:
         bot.reply_to(message, "⚠️ <b>Usage:</b> /netcr\n<b>Example:</b> <code>/netcr Naruto</code>", parse_mode="HTML")
         return
-    send_style_poster_response(message, "netcr", query, "NETFLIX X CRUNCHYROLL")
+    send_style_poster_response(message, "netcr", query)
 
 @bot.message_handler(commands=['mod'])
 def handle_mod(message):
@@ -3154,7 +3155,7 @@ def handle_mod(message):
     if not query:
         bot.reply_to(message, "⚠️ <b>Usage:</b> /mod\n<b>Example:</b> <code>/mod Jujutsu Kaisen</code>", parse_mode="HTML")
         return
-    send_style_poster_response(message, "mod", query, "MODERN AERO UNITY -->")
+    send_style_poster_response(message, "mod", query)
 
 @bot.message_handler(commands=['modm'])
 def handle_modm(message):
@@ -3162,7 +3163,7 @@ def handle_modm(message):
     if not query:
         bot.reply_to(message, "⚠️ <b>Usage:</b> /modm\n<b>Example:</b> <code>/modm Naruto</code>", parse_mode="HTML")
         return
-    send_style_poster_response(message, "modm", query, "MODERN MANGA AERO UNITY")
+    send_style_poster_response(message, "modm", query)
         
 # ------------------------ #
 # Don't Remove My Credits
