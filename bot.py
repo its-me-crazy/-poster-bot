@@ -1990,6 +1990,13 @@ def imdb_command(message):
 # Support : @Coders_Grp 
 # ------------------------ #
 
+# ------------------------ #
+# Don't Remove My Credits
+# Owner: @Mr_Mohammed_29
+# Updates: @Aero_Unity 
+# Support : @Coders_Grp 
+# ------------------------ #
+
 @bot.message_handler(commands=['poster'])
 def handle_poster_command(message):
     user_id = message.from_user.id
@@ -2001,7 +2008,7 @@ def handle_poster_command(message):
         if not pm_enabled:
             access_denied_text = (
                 "🔒 <b>ᴀᴄᴄᴇss ᴅᴇɴɪᴇᴅ</b>\n\n"
-                "<b>ʏᴏᴜ ᴀʀᴇ ɴᴏᴛ ᴀ ᴀᴜᴛʜᴏʀɪsᴇᴅ ᴜsᴇʀ.\n\n"
+                "<b>ʏᴏᴜ ᴀʀᴇ ɴᴏᴛ ᴀɴ ᴀᴜᴛʜᴏʀɪsᴇᴅ ᴜsᴇʀ.\n\n"
                 "ᴘʟᴇᴀsᴇ ᴜsᴇ ᴛʜɪs ʙᴏᴛ ɪɴ ᴏᴜʀ ᴘᴏsᴛᴇʀ ɢʀᴏᴜᴘ.</b>"
             )
             markup = telebot.types.InlineKeyboardMarkup()
@@ -2019,7 +2026,115 @@ def handle_poster_command(message):
         )
         return
         
-    search_poster(message)
+    send_interactive_poster_card(message, query, style_index=11)
+
+
+def send_interactive_poster_card(message, query, style_index=11):
+    status_msg = bot.reply_to(message, "⏳ <b>FETCHING DATA AND ARTWORK...</b>", parse_mode="HTML")
+    
+    encoded_query = requests.utils.quote(query)
+    search_url = f"https://api.themoviedb.org/3/search/multi?api_key={TMDB_API_KEY}&query={encoded_query}&include_adult=true"
+    
+    try:
+        res = session.get(search_url, timeout=5).json()
+        results = [r for r in res.get("results", []) if r.get("media_type") in ["tv", "movie"]]
+
+        if not results:
+            try:
+                bot.delete_message(message.chat.id, status_msg.message_id)
+            except Exception:
+                pass
+            bot.reply_to(message, f"‼️ No results found for <b>{html.escape(query)}</b>.", parse_mode="HTML")
+            return
+
+        item = results[0]
+        item_id = str(item.get("id"))
+        media_type = item.get("media_type", "tv")
+        title = item.get("name") or item.get("title") or query
+
+        endpoint = "movie" if media_type == "movie" else "tv"
+        details_url = f"https://api.themoviedb.org/3/{endpoint}/{item_id}?api_key={TMDB_API_KEY}&append_to_response=images,keywords"
+        det_res = session.get(details_url, timeout=5).json()
+
+        genres_list = [g["name"] for g in det_res.get("genres", [])]
+        synopsis = det_res.get("overview") or item.get("overview") or "No synopsis available."
+        vote_avg = det_res.get("vote_average", 8.4)
+
+        images = det_res.get("images", {})
+        backdrops = [f"https://image.tmdb.org/t/p/original{i['file_path']}" for i in images.get("backdrops", [])[:8]]
+        posters = [f"https://image.tmdb.org/t/p/w500{i['file_path']}" for i in images.get("posters", [])[:3]]
+
+        if not backdrops:
+            path = item.get("backdrop_path") or item.get("poster_path")
+            backdrops = [f"https://image.tmdb.org/t/p/original{path}"] if path else ["https://graph.org/file/faf795187aa693e1024a4-746b376c8dcc889d4f.jpg"]
+
+        img_bytes = session.get(backdrops[0], timeout=5).content
+        p_bytes_list = [session.get(p, timeout=3).content for p in posters[:3]] if posters else [img_bytes, img_bytes]
+
+        logo_url = get_tmdb_logo_url(item_id, endpoint)
+        
+        # Pull dynamic branding from database
+        user_branding = database.get_user_branding(message.from_user.id)
+
+        card_io = generate_custom_media_card(
+            poster_bytes=img_bytes,
+            portrait_bytes_list=p_bytes_list,
+            title=title,
+            genres=genres_list,
+            synopsis=synopsis,
+            rating_val=round(vote_avg, 1) if vote_avg else "8.4",
+            logo_url=logo_url,
+            branding=user_branding,
+            extra_meta={"studio": "Studio", "status": "Releasing", "media_format": "ANIME", "vote_average": vote_avg}
+        )
+
+        cache_key = f"{item_id}_style_{style_index}"
+        file_path = os.path.join(CACHE_DIR, f"{cache_key}.jpg")
+        with open(file_path, "wb") as f:
+            f.write(card_io.getvalue())
+
+        app_url = os.environ.get("RENDER_EXTERNAL_URL") or request.host_url.rstrip('/')
+        direct_link = f"{app_url}/poster/{cache_key}"
+
+        caption_text = (
+            f"🎬 <b>{html.escape(title)}</b>\n"
+            f"🎨 <b>STYLE {style_index} / 14</b> · 1280x720\n"
+            f"🖼️ <b>POSTER:</b> AniList poster\n"
+            f"⚙️ <b>OPTIONS ➔</b> ◀ ▶ <b>TO CHANGE THE POSTER</b>"
+        )
+
+        markup = InlineKeyboardMarkup()
+        markup.row(
+            InlineKeyboardButton(text="◀", callback_data=f"poster_st_{item_id}_{style_index-1}"),
+            InlineKeyboardButton(text=f"🎨 STYLE {style_index}/14", callback_data="noop"),
+            InlineKeyboardButton(text="▶", callback_data=f"poster_st_{item_id}_{style_index+1}")
+        )
+        markup.row(
+            InlineKeyboardButton(text="⚙️ OPTIONS", callback_data="poster_options"),
+            InlineKeyboardButton(text="🔄 REDO", callback_data=f"poster_redo_{item_id}")
+        )
+        markup.row(
+            InlineKeyboardButton(text="📁 FULL QUALITY FILE", url=direct_link),
+            InlineKeyboardButton(text="🔍 NEW ANIME", callback_data="poster_new")
+        )
+        markup.row(
+            InlineKeyboardButton(text="📢 POST TO CHANNEL", callback_data="poster_post_channel")
+        )
+
+        try:
+            bot.delete_message(message.chat.id, status_msg.message_id)
+        except Exception:
+            pass
+
+        card_io.seek(0)
+        bot.send_photo(message.chat.id, photo=card_io, caption=caption_text, parse_mode="HTML", reply_markup=markup)
+
+    except Exception as e:
+        try:
+            bot.delete_message(message.chat.id, status_msg.message_id)
+        except Exception:
+            pass
+        bot.reply_to(message, f"⚠️ Error: <code>{html.escape(str(e))}</code>", parse_mode="HTML")
 
 # ------------------------ #
 # Don't Remove My Credits
@@ -2027,6 +2142,162 @@ def handle_poster_command(message):
 # Updates: @Aero_Unity 
 # Support : @Coders_Grp 
 # ------------------------ #
+
+# ------------------------ #
+# Don't Remove My Credits
+# Owner: @Mr_Mohammed_29
+# Updates: @Aero_Unity 
+# Support : @Coders_Grp 
+# ------------------------ #
+
+@bot.callback_query_handler(func=lambda call: call.data.startswith("poster_"))
+def handle_poster_interactive_callbacks(call):
+    user_id = call.from_user.id
+    if database.is_banned(user_id):
+        bot.answer_callback_query(call.id, "You are banned from using this bot.", show_alert=True)
+        return
+
+    data = call.data
+    
+    # Handle style navigation (◀ / ▶)
+    if data.startswith("poster_st_"):
+        parts = data.split("_")
+        if len(parts) >= 4:
+            item_id = parts[2]
+            try:
+                target_style = int(parts[3])
+                if target_style < 1:
+                    target_style = 14
+                elif target_style > 14:
+                    target_style = 1
+                
+                bot.answer_callback_query(call.id, f"Switching to Style {target_style}...")
+                
+                for endpoint in ["tv", "movie"]:
+                    url = f"https://api.themoviedb.org/3/{endpoint}/{item_id}?api_key={TMDB_API_KEY}&append_to_response=images,keywords"
+                    res = session.get(url, timeout=5)
+                    if res.status_code == 200:
+                        det_res = res.json()
+                        title = det_res.get("name") or det_res.get("title") or "Title"
+                        genres_list = [g["name"] for g in det_res.get("genres", [])]
+                        synopsis = det_res.get("overview", "No synopsis available.")
+                        vote_avg = det_res.get("vote_average", 8.4)
+                        
+                        images = det_res.get("images", {})
+                        backdrops = [f"https://image.tmdb.org/t/p/original{i['file_path']}" for i in images.get("backdrops", [])[:8]]
+                        posters = [f"https://image.tmdb.org/t/p/w500{i['file_path']}" for i in images.get("posters", [])[:3]]
+                        
+                        if not backdrops:
+                            path = det_res.get("backdrop_path") or det_res.get("poster_path")
+                            backdrops = [f"https://image.tmdb.org/t/p/original{path}"] if path else ["https://graph.org/file/faf795187aa693e1024a4-746b376c8dcc889d4f.jpg"]
+
+                        img_bytes = session.get(backdrops[0], timeout=5).content
+                        p_bytes_list = [session.get(p, timeout=3).content for p in posters[:3]] if posters else [img_bytes, img_bytes]
+                        logo_url = get_tmdb_logo_url(item_id, endpoint)
+                        user_branding = database.get_user_branding(user_id)
+
+                        extra_metadata = {
+                            "studio": "Studio", 
+                            "status": "Releasing", 
+                            "media_format": "ANIME" if endpoint=="tv" else "MOVIE", 
+                            "vote_average": vote_avg
+                        }
+
+                        card_io = generate_custom_media_card(
+                            poster_bytes=img_bytes,
+                            portrait_bytes_list=p_bytes_list,
+                            title=title,
+                            genres=genres_list,
+                            synopsis=synopsis,
+                            rating_val=round(vote_avg, 1) if vote_avg else "8.4",
+                            logo_url=logo_url,
+                            branding=user_branding,
+                            extra_meta=extra_metadata
+                        )
+
+                        cache_key = f"{item_id}_style_{target_style}"
+                        file_path = os.path.join(CACHE_DIR, f"{cache_key}.jpg")
+                        with open(file_path, "wb") as f:
+                            f.write(card_io.getvalue())
+
+                        app_url = os.environ.get("RENDER_EXTERNAL_URL") or request.host_url.rstrip('/')
+                        direct_link = f"{app_url}/poster/{cache_key}"
+
+                        caption_text = (
+                            f"🎬 <b>{html.escape(title)}</b>\n"
+                            f"🎨 <b>STYLE {target_style} / 14</b> · 1280x720\n"
+                            f"🖼️ <b>POSTER:</b> AniList poster\n"
+                            f"⚙️ <b>OPTIONS ➔</b> ◀ ▶ <b>TO CHANGE THE POSTER</b>"
+                        )
+
+                        markup = InlineKeyboardMarkup()
+                        markup.row(
+                            InlineKeyboardButton(text="◀", callback_data=f"poster_st_{item_id}_{target_style-1}"),
+                            InlineKeyboardButton(text=f"🎨 STYLE {target_style}/14", callback_data="noop"),
+                            InlineKeyboardButton(text="▶", callback_data=f"poster_st_{item_id}_{target_style+1}")
+                        )
+                        markup.row(
+                            InlineKeyboardButton(text="⚙️ OPTIONS", callback_data="poster_options"),
+                            InlineKeyboardButton(text="🔄 REDO", callback_data=f"poster_redo_{item_id}")
+                        )
+                        markup.row(
+                            InlineKeyboardButton(text="📁 FULL QUALITY FILE", url=direct_link),
+                            InlineKeyboardButton(text="🔍 NEW ANIME", callback_data="poster_new")
+                        )
+                        markup.row(
+                            InlineKeyboardButton(text="📢 POST TO CHANNEL", callback_data="poster_post_channel")
+                        )
+
+                        card_io.seek(0)
+                        bot.edit_message_media(
+                            chat_id=call.message.chat.id,
+                            message_id=call.message.message_id,
+                            media=telebot.types.InputMediaPhoto(card_io, caption=caption_text, parse_mode="HTML"),
+                            reply_markup=markup
+                        )
+                        break
+            except Exception as e:
+                print(f"Style change error: {e}")
+        return
+
+    elif data == "poster_options":
+        bot.answer_callback_query(call.id, "Use /mybranding to customize your poster branding text!", show_alert=True)
+        return
+
+    elif data.startswith("poster_redo_"):
+        bot.answer_callback_query(call.id, "Poster regenerated!")
+        return
+
+    elif data == "poster_new":
+        bot.answer_callback_query(call.id, "Send any title to search!")
+        try:
+            bot.send_message(call.message.chat.id, "🔍 <b>Send me any anime or movie title to search:</b>", parse_mode="HTML")
+        except Exception:
+            pass
+        return
+
+    elif data == "poster_post_channel":
+        channels = database.get_fsub_channels()
+        if not channels:
+            bot.answer_callback_query(call.id, "No posting channel configured!", show_alert=True)
+            try:
+                bot.send_message(
+                    call.message.chat.id, 
+                    "📣 <b>ADD A CHANNEL FIRST WITH /addforcesub - I NEED TO BE A FULL ADMIN THERE.</b>", 
+                    parse_mode="HTML"
+                )
+            except Exception:
+                pass
+        else:
+            bot.answer_callback_query(call.id, "Posting to channel...")
+            try:
+                target_channel = channels[0]
+                bot.copy_message(chat_id=target_channel, from_chat_id=call.message.chat.id, message_id=call.message.message_id)
+                bot.send_message(call.message.chat.id, f"✅ Successfully posted to <code>{target_channel}</code>!", parse_mode="HTML")
+            except Exception as e:
+                bot.send_message(call.message.chat.id, f"❌ Failed to post. Ensure the bot is admin in <code>{target_channel}</code>.\nError: {e}", parse_mode="HTML")
+        return
+
 
 @bot.message_handler(commands=['random'])
 def handle_random_poster(message):
@@ -2225,49 +2496,74 @@ def manga_command_handler(message):
         bot.reply_to(message, "<b>Usage:</b> <code>/manga [title]</code>", parse_mode="HTML")
         return
 
-    status_msg = bot.reply_to(message, "⚙️ <b>ɢᴇɴᴇʀᴀᴛɪɴɢ ᴩᴏsᴛᴇʀ, ᴡᴀɪᴛ a sec...</b>", parse_mode="HTML")
+    status_msg = bot.reply_to(message, "⚙️ <b>ɢᴇɴᴇʀᴀᴛɪɴɢ ᴍᴀɴɢᴀ ᴄᴀʀᴅ, ᴡᴀɪᴛ a sec...</b>", parse_mode="HTML")
         
+    # Search specifically with comic/animation parameters and keywords to target Manga/Manhwa/Manhua/Pornhwa
     search_url = f"https://api.themoviedb.org/3/search/tv?api_key={TMDB_API_KEY}&query={requests.utils.quote(query)}&include_adult=true"
     res = session.get(search_url, timeout=5).json()
     results = res.get("results", [])
 
-    if not results:
-        search_url = f"https://api.themoviedb.org/3/search/movie?api_key={TMDB_API_KEY}&query={requests.utils.quote(query)}&include_adult=true"
-        res = session.get(search_url, timeout=5).json()
-        results = res.get("results", [])
+    # Filter results strictly to animation/comic or Asian regional content typical of manga/manhwa/pornhwa
+    manga_results = []
+    for item in results:
+        orig_lang = str(item.get("original_language", "")).lower()
+        genre_ids = item.get("genre_ids", [])
+        overview = str(item.get("overview", "")).lower()
+        title_str = str(item.get("name", "")).lower()
+        
+        # Check if it matches animation, comic, webtoon, or Asian languages associated with manga/manhwa/pornhwa
+        if (16 in genre_ids) or orig_lang in ["ja", "ko", "zh"] or "webtoon" in overview or "manga" in overview or "manhwa" in overview:
+            manga_results.append(item)
 
-    if not results:
-        bot.reply_to(message, f"‼️ No results found for <b>{html.escape(query)}</b>", parse_mode="HTML")
+    # Fallback to general results if strict filter is empty, but prioritize animation/series
+    if not manga_results and results:
+        manga_results = results
+
+    if not manga_results:
+        bot.reply_to(message, f"‼️ No manga/manhwa results found for <b>{html.escape(query)}</b>", parse_mode="HTML")
+        try:
+            bot.delete_message(message.chat.id, status_msg.message_id)
+        except Exception:
+            pass
         return
 
-    item = results[0]
+    item = manga_results[0]
     item_id = str(item.get("id"))
     media_type = item.get("media_type", "tv")
     title = item.get("name") or item.get("title") or query
     endpoint = "tv" if media_type == "tv" else "movie"
-    details_url = f"https://api.themoviedb.org/3/{endpoint}/{item_id}?api_key={TMDB_API_KEY}&append_to_response=images"
+    
+    details_url = f"https://api.themoviedb.org/3/{endpoint}/{item_id}?api_key={TMDB_API_KEY}&append_to_response=images,keywords"
     det_res = session.get(details_url, timeout=5).json()
+    
     orig_lang = det_res.get("original_language", "ja").lower()
     adult = det_res.get("adult", False)
     genres_list = [g["name"] for g in det_res.get("genres", [])]
+    
+    keywords_list = [kw.get("name", "").lower() for kw in det_res.get("keywords", {}).get("results", [])]
+    full_text_check = (title + " " + det_res.get("overview", "")).lower()
 
-    if adult or any(g.lower() in ["erotica", "hentai", "ecchi"] for g in genres_list):
-        detected_type = "Pornhwa" if orig_lang == "ko" else "Hentai"
-    elif orig_lang == "ko":
+    # Accurate type categorization for manga, manhwa, manhua, pornhwa, or anime
+    if adult or any(kw in ["erotica", "hentai", "ecchi", "adult comic", "pornhwa"] for kw in keywords_list) or any(g.lower() in ["erotica", "hentai", "ecchi"] for g in genres_list):
+        detected_type = "Pornhwa" if (orig_lang == "ko" or "manhwa" in full_text_check) else "Adult Manga"
+    elif "manhwa" in full_text_check or "webtoon" in full_text_check or orig_lang == "ko":
         detected_type = "Manhwa"
-    elif orig_lang == "zh":
+    elif "manhua" in full_text_check or orig_lang == "zh":
         detected_type = "Manhua"
-    elif orig_lang == "ja":
+    elif orig_lang == "ja" or "manga" in full_text_check:
         detected_type = "Manga"
     else:
-        detected_type = "Manga" if media_type == "tv" else "Comic"
+        detected_type = "Manga"
 
     vote_avg = det_res.get("vote_average", 0)
-    rating_pct = f"{int(vote_avg * 10)}%" if vote_avg else "84%"
-    genres_str = ", ".join(genres_list) if genres_list else "Action, Fantasy"
+    rating_pct = f"{int(vote_avg * 10)}%" if vote_avg else "88%"
+    genres_str = ", ".join(genres_list) if genres_list else "Romance, Drama"
     status_str = det_res.get("status", "Releasing")
-    episodes = det_res.get("number_of_episodes")
-    chapters_str = f"{episodes}+" if episodes else "120+"
+    
+    # Chapter estimation matching Manga Cruise style representation
+    episodes = det_res.get("number_of_episodes") or det_res.get("number_of_seasons")
+    chapters_str = f"{episodes * 25}+" if episodes and episodes < 30 else "318+"
+
     images = det_res.get("images", {})
     artworks = [f"https://image.tmdb.org/t/p/original{i['file_path']}" for i in images.get("backdrops", [])[:8]]
     posters = [f"https://image.tmdb.org/t/p/w500{i['file_path']}" for i in images.get("posters", [])[:3]]
@@ -2320,15 +2616,18 @@ def manga_command_handler(message):
             except Exception:
                 p_bytes_list.append(img_bytes)
 
+        # Retrieve user's custom branding dynamically
+        user_branding = database.get_user_branding(message.from_user.id)
+
         card_io = generate_custom_media_card(
             poster_bytes=img_bytes,
             portrait_bytes_list=p_bytes_list,
             title=title,
-            genres=genres_list if isinstance(genres_list, list) else ["Action", "Fantasy"],
+            genres=genres_list if isinstance(genres_list, list) else ["Romance", "Drama"],
             synopsis=synopsis,
             rating_val=round(vote_avg, 1) if vote_avg else "8.4",
             logo_url=logo_url,
-            branding="Manga Aero"
+            branding=user_branding
         )
 
         markup = InlineKeyboardMarkup()
@@ -2352,7 +2651,7 @@ def manga_command_handler(message):
             reply_markup=markup
         )
     except Exception as e:
-        bot.reply_to(message, f"❌ Error generating manga result: {e}", parse_mode="HTML")
+        bot.reply_to(message, f"❌ Error generating manga card: {e}", parse_mode="HTML")
 
 # ------------------------ #
 # Don't Remove My Credits
