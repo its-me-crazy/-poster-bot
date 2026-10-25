@@ -720,7 +720,7 @@ def handle_all_callbacks(call):
                 pass
             
             welcome_text = (
-                "✅ <b>VᴇʀɪғɪᴄᴀᴛɪᴏN Sᴜᴄᴄᴇssғᴜʟ</b>\n\n"
+                "✅ <b>VᴇʀɪfɪᴄᴀᴛɪᴏN Sᴜᴄᴄᴇssғᴜʟ</b>\n\n"
                 "<b>Wᴇʟᴄᴏᴍᴇ Bᴀᴄᴋ 𝗌𝖾𝗇𝖽 𝗆𝖾 𝖺𝗇𝗒 𝗍𝗂𝗍𝗅𝖾 (𝗆𝗈𝗏𝗂𝖾𝗌, 𝗌𝖾𝗋𝗂𝖾𝗌, 𝖺𝗇𝗂𝗆𝖾, 𝗄-𝖽𝗋𝖺𝗆𝖺𝗌, 𝖾𝗍𝖼.), "
                 "to 𝗀𝖾𝗇𝖾𝗋𝖺𝗍𝖾 𝗍𝗁𝖾 𝗉𝗈𝗌𝗍𝖾𝗋 𝗅𝖺𝗒𝗈𝗎𝗍 𝖿𝗈𝗋 𝗒𝗈𝗎</b>"
             )
@@ -958,9 +958,9 @@ def list_force_sub(message):
     channels = database.get_fsub_channels()
     if channels:
         channels_str = "\n".join([f"• <code>{ch}</code> •" for ch in channels])
-        bot.reply_to(message, f" <b>ꜰᴏʀᴄᴇ sᴜʙsᴄʀɪᴘᴛɪᴏN ᴄʜᴀɴɴᴇʟs ʟɪsᴛ:</b>\n\n{channels_str}", parse_mode="HTML")
+        bot.reply_to(message, f" <b>ꜰᴏʀᴄᴇ sᴜʙsᴄʀɪᴘᴛɪᴏN ᴄʜᴀɴɴᴇls ʟɪsᴛ:</b>\n\n{channels_str}", parse_mode="HTML")
     else:
-        bot.reply_to(message, "‼️<b>ɴᴏ sᴜʙsᴄʀɪᴘᴛɪᴏɴ ᴄʜᴀɴɴᴇʟs ᴀʀᴇ ᴄᴜʀʀᴇɴᴛʟʏ sᴇᴛ.</b>", parse_mode="HTML")
+        bot.reply_to(message, "‼️<b>ɴᴏ sᴜʙsᴄʀɪᴘᴛɪᴏN ᴄʜᴀɴɴᴇls ᴀʀᴇ ᴄᴜʀʀᴇɴᴛʟʏ sᴇᴛ.</b>", parse_mode="HTML")
 
 # ------------------------ #
 # Don't Remove My Credits
@@ -1193,7 +1193,6 @@ def handle_set_branding(message):
     if database.is_banned(user_id):
         return
 
-    # Extract text after command
     args = message.text.split(maxsplit=1)
     if len(args) < 2:
         current_brand = database.get_user_branding(user_id)
@@ -1218,6 +1217,12 @@ def handle_set_branding(message):
         parse_mode="HTML"
     )
 
+# ------------------------ #
+# Don't Remove My Credits
+# Owner: @Mr_Mohammed_29
+# Updates: @Aero_Unity 
+# Support : @Coders_Grp 
+# ------------------------ #
 
 @bot.message_handler(commands=['search', 'find'])
 def handle_search_command(message):
@@ -1230,8 +1235,7 @@ def handle_search_command(message):
         bot.reply_to(message, "<b>Usage:</b> <code>/search [title]</code>", parse_mode="HTML")
         return
 
-    # Triggers TMDb search and returns an inline choice list
-    imdb_command(message)  # Reuses existing menu search flow
+    imdb_command(message)
 
 # ------------------------ #
 # Don't Remove My Credits
@@ -1336,7 +1340,6 @@ def handle_trending(message):
             media_type = item.get("media_type", "movie").upper()
             markup.add(InlineKeyboardButton(text=f"🔥 {title} [{media_type}]", callback_data=f"tr_select_{idx}"))
 
-        # Save to cache for callbacks
         SEARCH_CACHE[f"tr_{message.message_id}"] = results
 
         bot.delete_message(message.chat.id, status_msg.message_id)
@@ -1434,7 +1437,7 @@ def add_title_overlay(image_bytes, title_text="", logo_url=None, position="cente
     image.convert("RGB").save(output, format="JPEG", quality=95)
     output.seek(0)
     return output
-    
+
 # ------------------------ #
 # Don't Remove My Credits
 # Owner: @Mr_Mohammed_29
@@ -1648,15 +1651,11 @@ def search_poster(message):
     elif raw_query.startswith("/poster "):
         raw_query = raw_query[8:].strip()
 
-    # Comprehensive Language Map
     LANG_MAP = {
-        # East Asian / Dramas
         r'(?i)\b(?:kdrama|k-drama|korean|kr)\b': 'ko',
         r'(?i)\b(?:chi|cdrama|chinese|mandarin|zh)\b': 'zh',
         r'(?i)\b(?:jdrama|j-drama|japanese|jap|anime|ja)\b': 'ja',
         r'(?i)\b(?:thai|th)\b': 'th',
-
-        # Indian Languages
         r'(?i)\b(?:hindi|hin|hi)\b': 'hi',
         r'(?i)\b(?:tamil|tam|ta)\b': 'ta',
         r'(?i)\b(?:telugu|tel|te)\b': 'te',
@@ -1665,8 +1664,6 @@ def search_poster(message):
         r'(?i)\b(?:bengali|ben|bn)\b': 'bn',
         r'(?i)\b(?:marathi|mar|mr)\b': 'mr',
         r'(?i)\b(?:punjabi|pun|pa)\b': 'pa',
-
-        # European Languages
         r'(?i)\b(?:spanish|spa|es)\b': 'es',
         r'(?i)\b(?:french|fre|fr)\b': 'fr',
         r'(?i)\b(?:german|ger|de)\b': 'de',
@@ -1674,8 +1671,6 @@ def search_poster(message):
         r'(?i)\b(?:russian|rus|ru)\b': 'ru',
         r'(?i)\b(?:portuguese|por|pt)\b': 'pt',
         r'(?i)\b(?:turkish|tur|tr)\b': 'tr',
-
-        # Middle Eastern & English
         r'(?i)\b(?:arabic|ara|ar)\b': 'ar',
         r'(?i)\b(?:persian|farsi|fa)\b': 'fa',
         r'(?i)\b(?:indonesian|indo|id)\b': 'id',
@@ -1715,7 +1710,6 @@ def search_poster(message):
     results = []
 
     try:
-
         if season_number or lang_filter in ["ko", "zh", "ja"]:
             tv_url = f"https://api.themoviedb.org/3/search/tv?api_key={TMDB_API_KEY}&query={requests.utils.quote(clean_query)}{first_air_year_param}{lang_param}"
             tv_res = session.get(tv_url, timeout=5)
@@ -1964,7 +1958,6 @@ def handle_random_poster(message):
 
     status_msg = bot.reply_to(message, "🎲 <b>Fetching a random title for you...</b>", parse_mode="HTML")
     
-    # Random page from top rated TMDb movies/shows
     page = random.randint(1, 10)
     url = f"https://api.themoviedb.org/3/trending/all/day?api_key={TMDB_API_KEY}&page={page}"
     
@@ -1999,7 +1992,6 @@ def handle_report_command(message):
         bot.reply_to(message, "<b>Usage:</b> <code>/report [your message or issue]</code>", parse_mode="HTML")
         return
 
-    # Send report to Owner
     owner_notification = (
         f"📩 <b>New User Report</b>\n\n"
         f"• <b>From User:</b> {html.escape(message.from_user.first_name)} (<code>{user_id}</code>)\n"
@@ -2083,7 +2075,6 @@ def movie_poster_handler(message):
     try:
         img_response = session.get(raw_backdrop_url, timeout=8)
         if img_response.status_code == 200:
-            # Generate and save overlay banner (with TMDb logo and dynamic position)
             processed_io = add_title_overlay(img_response.content, title, logo_url, position=assigned_position)
             with open(landscape_file_path, "wb") as f:
                 f.write(processed_io.getvalue())
@@ -2122,7 +2113,6 @@ def movie_poster_handler(message):
         pass
 
     try:
-
         if os.path.exists(landscape_file_path):
             with open(landscape_file_path, 'rb') as photo:
                 bot.send_photo(
@@ -2358,20 +2348,13 @@ def generate_custom_media_card(poster_bytes, portrait_bytes_list, title, genres,
 
     studio_name = extra_meta.get("studio", "N/A").upper()
     status_str = extra_meta.get("status", "N/A").upper()
-    media_format = extra_meta.get("media_format", "ANIME").upper() # ANIME, MANGA, MANHWA, MANHUA, etc.
+    media_format = extra_meta.get("media_format", "ANIME").upper()
     vote_average = extra_meta.get("vote_average", 8.4)
     
     try:
         match_pct = int(float(vote_average) * 10)
     except Exception:
         match_pct = 84
-        
-# ------------------------ #
-# Don't Remove My Credits
-# Owner: @Mr_Mohammed_29
-# Updates: @Aero_Unity 
-# Support : @Coders_Grp 
-# ------------------------ #
 
     def get_font(size, bold=False):
         font_paths = [
@@ -2391,13 +2374,6 @@ def generate_custom_media_card(poster_bytes, portrait_bytes_list, title, genres,
         base_backdrop = ImageOps.fit(raw_art, (target_w, target_h), method=Image.Resampling.LANCZOS)
     except Exception:
         base_backdrop = Image.new("RGBA", (target_w, target_h), (15, 15, 20, 255))
-    
-# ------------------------ #
-# Don't Remove My Credits
-# Owner: @Mr_Mohammed_29
-# Updates: @Aero_Unity 
-# Support : @Coders_Grp 
-# ------------------------ #
     
     if "ANILIST" in b_upper:
         bg_color = (21, 31, 46, 255) if "ANIME" in b_upper else (15, 23, 36, 255)
@@ -2466,13 +2442,6 @@ def generate_custom_media_card(poster_bytes, portrait_bytes_list, title, genres,
         draw.text((145, 560), "Add to List", fill=(255, 255, 255), font=get_font(14, bold=True))
         draw.rectangle([0, 680, target_w, 720], fill=(11, 22, 34))
         draw.text((30, 688), "ANILIST", fill=(255, 255, 255), font=get_font(22, bold=True))
-  
-# ------------------------ #
-# Don't Remove My Credits
-# Owner: @Mr_Mohammed_29
-# Updates: @Aero_Unity 
-# Support : @Coders_Grp 
-# ------------------------ #
     
     elif "NETFLIX" in b_upper or "NETCR" in b_upper:
         canvas = base_backdrop.copy()
@@ -2511,7 +2480,6 @@ def generate_custom_media_card(poster_bytes, portrait_bytes_list, title, genres,
             draw.text((60, sy), line, fill=(200, 200, 200), font=get_font(13, bold=False))
             sy += 18
 
-        # Buttons (Play / Read & My List)
         btn_label = "▶  Read" if is_manga_style else "▶  Play"
         draw.rectangle([60, 550, 170, 590], fill=(255, 255, 255))
         draw.text((85, 562), btn_label, fill=(0, 0, 0), font=get_font(14, bold=True))
@@ -2519,15 +2487,7 @@ def generate_custom_media_card(poster_bytes, portrait_bytes_list, title, genres,
         draw.rectangle([180, 550, 300, 590], outline=(150, 150, 150), width=1)
         draw.text((198, 562), "+ My List", fill=(255, 255, 255), font=get_font(14, bold=True))
         
-        # Star Rating on Bottom Right
         draw.text((1180, 640), f"★ {rating_val}", fill=(255, 215, 0), font=get_font(18, bold=True))
-
-# ------------------------ #
-# Don't Remove My Credits
-# Owner: @Mr_Mohammed_29
-# Updates: @Aero_Unity 
-# Support : @Coders_Grp 
-# ------------------------ #
     
     elif "CRUNCHYROLL" in b_upper:
         canvas = base_backdrop.copy()
@@ -2568,13 +2528,6 @@ def generate_custom_media_card(poster_bytes, portrait_bytes_list, title, genres,
         for line in lines[:4]:
             draw.text((60, sy), line, fill=(220, 220, 220), font=get_font(14, bold=False))
             sy += 22
-
-# ------------------------ #
-# Don't Remove My Credits
-# Owner: @Mr_Mohammed_29
-# Updates: @Aero_Unity 
-# Support : @Coders_Grp 
-# ------------------------ #
     
     elif ("AERO" in b_upper or "LIGHT" in b_upper) and "MOD" not in b_upper:
         canvas = Image.new("RGBA", (target_w, target_h), (255, 255, 255, 255))
@@ -2635,15 +2588,7 @@ def generate_custom_media_card(poster_bytes, portrait_bytes_list, title, genres,
         draw.ellipse([910, 535, 990, 615], fill=(230, 50, 50))
         draw.text((940, 555), "+", fill=(255, 255, 255), font=get_font(28, bold=True))
     
-# ------------------------ #
-# Don't Remove My Credits
-# Owner: @Mr_Mohammed_29
-# Updates: @Aero_Unity 
-# Support : @Coders_Grp 
-# ------------------------ #
-
     elif "MOD" in b_upper:
-        
         canvas = base_backdrop.copy()
         overlay = Image.new("RGBA", (target_w, target_h), (10, 10, 15, 200))
         canvas.alpha_composite(overlay)
@@ -2678,7 +2623,6 @@ def generate_custom_media_card(poster_bytes, portrait_bytes_list, title, genres,
         draw.polygon(star_points, fill=(180, 180, 180))
         draw.text((sidebar_x + 6, sidebar_y + 352), "FAVORITES", fill=(180, 180, 180), font=get_font(9, bold=True))
 
-        # 2. Top Header Pill & Genre Pills
         draw.rounded_rectangle([125, 20, 280, 55], radius=18, fill=(15, 15, 22, 230))
         draw.text((138, 28), "☰", fill=(255, 255, 255), font=get_font(16, bold=True))
         draw.text((165, 30), "AERO UNITY", fill=(0, 210, 255), font=get_font(14, bold=True))
@@ -2747,13 +2691,6 @@ def generate_custom_media_card(poster_bytes, portrait_bytes_list, title, genres,
         for line in lines[:10]:
             draw.text((card_x + 15, sy), line, fill=(200, 200, 200), font=get_font(11, bold=False))
             sy += 18
-
-# ------------------------ #
-# Don't Remove My Credits
-# Owner: @Mr_Mohammed_29
-# Updates: @Aero_Unity 
-# Support : @Coders_Grp 
-# ------------------------ #
     
     elif "WEBTOON" in b_upper or "DARK" in b_upper:
         is_darkm = "MANGA" in b_upper or "DARKM" in b_upper
@@ -2795,13 +2732,6 @@ def generate_custom_media_card(poster_bytes, portrait_bytes_list, title, genres,
         btn_label = "READ NOW" if is_darkm else "WATCH NOW"
         draw.rounded_rectangle([210, 530, 450, 580], radius=25, fill=(255, 255, 255))
         draw.text((275 if is_darkm else 265, 548), btn_label, fill=(55, 10, 35), font=get_font(14, bold=True))
-
-# ------------------------ #
-# Don't Remove My Credits
-# Owner: @Mr_Mohammed_29
-# Updates: @Aero_Unity 
-# Support : @Coders_Grp 
-# ------------------------ #
     
     else:
         canvas = base_backdrop.copy()
@@ -2837,7 +2767,7 @@ def generate_custom_media_card(poster_bytes, portrait_bytes_list, title, genres,
         words = synopsis.split()
         lines, curr = [], ""
         for w in words:
-            if len(curr + " " +W if False else curr + " " + w) < 35: curr += " " + w
+            if len(curr + " " + w) < 35: curr += " " + w
             else: lines.append(curr.strip()); curr = w
         if curr: lines.append(curr.strip())
 
@@ -2899,7 +2829,7 @@ def send_style_poster_response(message, cmd, query, branding_name):
         parse_mode="HTML"
     )
     
-    time.sleep(2)
+    time.sleep(1)
     
     encoded_query = requests.utils.quote(query)
     search_url = f"https://api.themoviedb.org/3/search/multi?api_key={TMDB_API_KEY}&query={encoded_query}&include_adult=true"
@@ -2981,7 +2911,6 @@ def send_style_poster_response(message, cmd, query, branding_name):
             media_format = "PORNHWA"
 
         raw_status = det_res.get("status", "Unknown").lower()
-        
         if "ended" in raw_status or "returned" in raw_status or "released" in raw_status or "completed" in raw_status:
             status_str = "FINISHED"
         elif "returning" in raw_status or "in production" in raw_status or "ongoing" in raw_status or "planned" in raw_status:
@@ -2991,9 +2920,8 @@ def send_style_poster_response(message, cmd, query, branding_name):
 
         release_date = item.get("release_date") or item.get("first_air_date") or ""
         year_str = release_date.split("-")[0] if release_date else "2024"
-        
         ep_count = det_res.get("number_of_episodes") or 12
-        chap_str = f"{ep_count * 15}+" if ep_count else "700+"  # Estimates chapters if it's a long running series/manga format
+        chap_str = f"{ep_count * 15}+" if ep_count else "700+"
 
         extra_metadata = {
             "studio": studio_str,
@@ -3094,13 +3022,6 @@ def handle_ani(message):
         return
     send_style_poster_response(message, "ani", query, "ANILIST ANIME")
 
-# ------------------------ #
-# Don't Remove My Credits
-# Owner: @Mr_Mohammed_29
-# Updates: @Aero_Unity 
-# Support : @Coders_Grp 
-# ------------------------ #
-
 @bot.message_handler(commands=['anim'])
 def handle_anim(message):
     query = message.text.replace("/anim", "").strip()
@@ -3108,13 +3029,6 @@ def handle_anim(message):
         bot.reply_to(message, "⚠️ <b>Usage:</b> /anim\n<b>Example:</b> <code>/anim Naruto</code>", parse_mode="HTML")
         return
     send_style_poster_response(message, "anim", query, "ANILIST MANGA")
-
-# ------------------------ #
-# Don't Remove My Credits
-# Owner: @Mr_Mohammed_29
-# Updates: @Aero_Unity 
-# Support : @Coders_Grp 
-# ------------------------ #
 
 @bot.message_handler(commands=['crun'])
 def handle_crun(message):
@@ -3124,13 +3038,6 @@ def handle_crun(message):
         return
     send_style_poster_response(message, "crun", query, "CRUNCHYROLL")
 
-# ------------------------ #
-# Don't Remove My Credits
-# Owner: @Mr_Mohammed_29
-# Updates: @Aero_Unity 
-# Support : @Coders_Grp 
-# ------------------------ #
-
 @bot.message_handler(commands=['net'])
 def handle_net(message):
     query = message.text.replace("/net", "").strip()
@@ -3138,13 +3045,6 @@ def handle_net(message):
         bot.reply_to(message, "⚠️ <b>Usage:</b> /net\n<b>Example:</b> <code>/net Naruto</code>", parse_mode="HTML")
         return
     send_style_poster_response(message, "net", query, "NETFLIX ANIME")
-
-# ------------------------ #
-# Don't Remove My Credits
-# Owner: @Mr_Mohammed_29
-# Updates: @Aero_Unity 
-# Support : @Coders_Grp 
-# ------------------------ #
 
 @bot.message_handler(commands=['netm'])
 def handle_netm(message):
@@ -3154,13 +3054,6 @@ def handle_netm(message):
         return
     send_style_poster_response(message, "netm", query, "NETFLIX MANGA")
 
-# ------------------------ #
-# Don't Remove My Credits
-# Owner: @Mr_Mohammed_29
-# Updates: @Aero_Unity 
-# Support : @Coders_Grp 
-# ------------------------ #
-
 @bot.message_handler(commands=['light'])
 def handle_light(message):
     query = message.text.replace("/light", "").strip()
@@ -3168,13 +3061,6 @@ def handle_light(message):
         bot.reply_to(message, "⚠️ <b>Usage:</b> /light\n<b>Example:</b> <code>/light Naruto</code>", parse_mode="HTML")
         return
     send_style_poster_response(message, "light", query, "ANIME AERO UNITY")
-
-# ------------------------ #
-# Don't Remove My Credits
-# Owner: @Mr_Mohammed_29
-# Updates: @Aero_Unity 
-# Support : @Coders_Grp 
-# ------------------------ #
 
 @bot.message_handler(commands=['lightm'])
 def handle_lightm(message):
@@ -3184,13 +3070,6 @@ def handle_lightm(message):
         return
     send_style_poster_response(message, "lightm", query, "MANGA AERO LIGHTM")
 
-# ------------------------ #
-# Don't Remove My Credits
-# Owner: @Mr_Mohammed_29
-# Updates: @Aero_Unity 
-# Support : @Coders_Grp 
-# ------------------------ #
-
 @bot.message_handler(commands=['dark'])
 def handle_dark(message):
     query = message.text.replace("/dark", "").strip()
@@ -3198,13 +3077,6 @@ def handle_dark(message):
         bot.reply_to(message, "⚠️ <b>Usage:</b> /dark\n<b>Example:</b> <code>/dark Naruto</code>", parse_mode="HTML")
         return
     send_style_poster_response(message, "dark", query, "WEBTOON FLIX")
-
-# ------------------------ #
-# Don't Remove My Credits
-# Owner: @Mr_Mohammed_29
-# Updates: @Aero_Unity 
-# Support : @Coders_Grp 
-# ------------------------ #
 
 @bot.message_handler(commands=['darkm'])
 def handle_darkm(message):
@@ -3214,13 +3086,6 @@ def handle_darkm(message):
         return
     send_style_poster_response(message, "darkm", query, "WEBTOON FLIX DARKM")
 
-# ------------------------ #
-# Don't Remove My Credits
-# Owner: @Mr_Mohammed_29
-# Updates: @Aero_Unity 
-# Support : @Coders_Grp 
-# ------------------------ #
-
 @bot.message_handler(commands=['netcr'])
 def handle_netcr(message):
     query = message.text.replace("/netcr", "").strip()
@@ -3229,13 +3094,6 @@ def handle_netcr(message):
         return
     send_style_poster_response(message, "netcr", query, "NETFLIX X CRUNCHYROLL")
 
-# ------------------------ #
-# Don't Remove My Credits
-# Owner: @Mr_Mohammed_29
-# Updates: @Aero_Unity 
-# Support : @Coders_Grp 
-# ------------------------ #
-
 @bot.message_handler(commands=['mod'])
 def handle_mod(message):
     query = message.text.replace("/mod", "").strip()
@@ -3243,13 +3101,6 @@ def handle_mod(message):
         bot.reply_to(message, "⚠️ <b>Usage:</b> /mod\n<b>Example:</b> <code>/mod Jujutsu Kaisen</code>", parse_mode="HTML")
         return
     send_style_poster_response(message, "mod", query, "MODERN AERO UNITY -->")
-
-# ------------------------ #
-# Don't Remove My Credits
-# Owner: @Mr_Mohammed_29
-# Updates: @Aero_Unity 
-# Support : @Coders_Grp 
-# ------------------------ #
 
 @bot.message_handler(commands=['modm'])
 def handle_modm(message):
