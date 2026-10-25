@@ -2159,6 +2159,7 @@ def movie_poster_handler(message):
     except Exception as e:
         bot.reply_to(message, f"❌ Error sending poster: {e}", parse_mode="HTML")
 
+
 # ------------------------ #
 # Don't Remove My Credits
 # Owner: @Mr_Mohammed_29
@@ -2168,6 +2169,10 @@ def movie_poster_handler(message):
 
 @bot.message_handler(commands=['manga'])
 def manga_command_handler(message):
+    user_id = message.from_user.id
+    if database.is_banned(user_id):
+        return
+
     query = message.text.replace("/manga", "").strip()
     if not query:
         bot.reply_to(message, "<b>Usage:</b> <code>/manga [title]</code>", parse_mode="HTML")
@@ -2175,12 +2180,10 @@ def manga_command_handler(message):
 
     status_msg = bot.reply_to(message, "⚙️ <b>ɢᴇɴᴇʀᴀᴛɪɴɢ ᴍᴀɴɢᴀ ᴄᴀʀᴅ, ᴡᴀɪᴛ a sec...</b>", parse_mode="HTML")
         
-    # Search specifically with comic/animation parameters and keywords to target Manga/Manhwa/Manhua/Pornhwa
     search_url = f"https://api.themoviedb.org/3/search/tv?api_key={TMDB_API_KEY}&query={requests.utils.quote(query)}&include_adult=true"
     res = session.get(search_url, timeout=5).json()
     results = res.get("results", [])
 
-    # Filter results strictly to animation/comic or Asian regional content typical of manga/manhwa/pornhwa
     manga_results = []
     for item in results:
         orig_lang = str(item.get("original_language", "")).lower()
@@ -2188,11 +2191,9 @@ def manga_command_handler(message):
         overview = str(item.get("overview", "")).lower()
         title_str = str(item.get("name", "")).lower()
         
-        # Check if it matches animation, comic, webtoon, or Asian languages associated with manga/manhwa/pornhwa
         if (16 in genre_ids) or orig_lang in ["ja", "ko", "zh"] or "webtoon" in overview or "manga" in overview or "manhwa" in overview:
             manga_results.append(item)
 
-    # Fallback to general results if strict filter is empty, but prioritize animation/series
     if not manga_results and results:
         manga_results = results
 
@@ -2220,7 +2221,6 @@ def manga_command_handler(message):
     keywords_list = [kw.get("name", "").lower() for kw in det_res.get("keywords", {}).get("results", [])]
     full_text_check = (title + " " + det_res.get("overview", "")).lower()
 
-    # Accurate type categorization for manga, manhwa, manhua, pornhwa, or anime
     if adult or any(kw in ["erotica", "hentai", "ecchi", "adult comic", "pornhwa"] for kw in keywords_list) or any(g.lower() in ["erotica", "hentai", "ecchi"] for g in genres_list):
         detected_type = "Pornhwa" if (orig_lang == "ko" or "manhwa" in full_text_check) else "Adult Manga"
     elif "manhwa" in full_text_check or "webtoon" in full_text_check or orig_lang == "ko":
@@ -2237,7 +2237,6 @@ def manga_command_handler(message):
     genres_str = ", ".join(genres_list) if genres_list else "Romance, Drama"
     status_str = det_res.get("status", "Releasing")
     
-    # Chapter estimation matching Manga Cruise style representation
     episodes = det_res.get("number_of_episodes") or det_res.get("number_of_seasons")
     chapters_str = f"{episodes * 25}+" if episodes and episodes < 30 else "318+"
 
@@ -2293,7 +2292,8 @@ def manga_command_handler(message):
             except Exception:
                 p_bytes_list.append(img_bytes)
 
-        user_branding = database.get_user_branding(message.from_user.id)
+        # Retrieve user's custom branding dynamically set via /mybranding
+        user_branding = database.get_user_branding(user_id)
 
         card_io = generate_custom_media_card(
             poster_bytes=img_bytes,
@@ -2303,9 +2303,8 @@ def manga_command_handler(message):
             synopsis=synopsis,
             rating_val=round(vote_avg, 1) if vote_avg else "8.4",
             logo_url=logo_url,
-            branding=user_branding  # <--- Now uses your dynamic /mybranding text!
+            branding=user_branding  
         )
-
 
         markup = InlineKeyboardMarkup()
         markup.row(
