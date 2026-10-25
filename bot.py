@@ -808,6 +808,86 @@ def handle_all_callbacks(call):
 # Support : @Coders_Grp 
 # ------------------------ #
 
+@bot.callback_query_handler(func=lambda call: call.data.startswith("tr_select_"))
+def handle_trending_selection(call):
+    try:
+        bot.answer_callback_query(call.id)
+    except Exception:
+        pass
+
+    try:
+        idx = int(call.data.split("_")[-1])
+        cache_key = f"tr_{call.message.reply_to_message.message_id if call.message.reply_to_message else call.message.message_id}"
+        
+        # Fallback search cache key check if message_id format differs
+        results = SEARCH_CACHE.get(cache_key)
+        if not results:
+            # Try matching any recent trending cache key if exact reply link is missing
+            for k in list(SEARCH_CACHE.keys()):
+                if k.startswith("tr_"):
+                    results = SEARCH_CACHE[k]
+                    break
+
+        if not results or idx >= len(results):
+            bot.answer_callback_query(call.id, "Session expired, please run /trending again.", show_alert=True)
+            return
+
+        item = results[idx]
+        title = item.get("title") or item.get("name") or "Unknown"
+        release_date = item.get("release_date") or item.get("first_air_date") or ""
+        year = release_date.split("-")[0] if release_date else "N/A"
+        overview = item.get("overview", "No storyline available.")
+        rating = item.get("vote_average", "N/A")
+        if rating != "N/A":
+            rating = f"{round(rating, 1)} / 10"
+            
+        media_type = item.get("media_type", "movie").upper()
+        poster_path = item.get("poster_path") or item.get("backdrop_path")
+        poster_url = f"https://image.tmdb.org/t/p/w500{poster_path}" if poster_path else None
+
+        caption_lines = [
+            f"• 🎬 <b>{html.escape(title)}</b> [{year}]",
+            f"• 🏛️ <b>Type:</b> {media_type}",
+            f"• ⭐ <b>Rating:</b> {rating}\n",
+            f"• 📖 <b>Storyline:</b>\n<i>{html.escape(overview)}</i>"
+        ]
+        caption_text = "\n".join(caption_lines)
+
+        # Create markup with Close button (using telebot types)
+        markup = InlineKeyboardMarkup()
+        markup.add(InlineKeyboardButton(text="• Cʟᴏsᴇ •", callback_data="help_close")) # Reuses your existing close handler
+
+        try:
+            bot.delete_message(call.message.chat.id, call.message.message_id)
+        except Exception:
+            pass
+
+        if poster_url:
+            bot.send_photo(
+                chat_id=call.message.chat.id,
+                photo=poster_url,
+                caption=caption_text,
+                parse_mode="HTML",
+                reply_markup=markup
+            )
+        else:
+            bot.send_message(
+                chat_id=call.message.chat.id,
+                text=caption_text,
+                parse_mode="HTML",
+                reply_markup=markup
+            )
+    except Exception as e:
+        print(f"Trending selection error: {e}")
+
+
+# ------------------------ #
+# Don't Remove My Credits
+# Owner: @Mr_Mohammed_29
+# Updates: @Aero_Unity 
+# Support : @Coders_Grp 
+# ------------------------ #
+
 @bot.message_handler(commands=['stats'])
 def bot_stats(message):
     if message.from_user.id != OWNER_ID:
@@ -1305,7 +1385,8 @@ def handle_trending(message):
             media_type = item.get("media_type", "movie").upper()
             markup.add(InlineKeyboardButton(text=f"🔥 {title} [{media_type}]", callback_data=f"tr_select_{idx}"))
 
-        SEARCH_CACHE[f"tr_{message.message_id}"] = results
+        SEARCH_CACHE[f"tr_{message.chat.id}"] = results
+
 
         bot.delete_message(message.chat.id, status_msg.message_id)
         bot.send_message(
