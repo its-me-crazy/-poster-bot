@@ -832,6 +832,13 @@ def handle_all_callbacks(call):
 # Support : @Coders_Grp 
 # ------------------------ #
 
+# ------------------------ #
+# Don't Remove My Credits
+# Owner: @Mr_Mohammed_29
+# Updates: @Aero_Unity 
+# Support : @Coders_Grp 
+# ------------------------ #
+
 @bot.callback_query_handler(func=lambda call: call.data.startswith("tr_select_"))
 def handle_trending_selection(call):
     try:
@@ -841,12 +848,12 @@ def handle_trending_selection(call):
 
     try:
         idx = int(call.data.split("_")[-1])
-        cache_key = f"tr_{call.message.reply_to_message.message_id if call.message.reply_to_message else call.message.message_id}"
-        
-        # Fallback search cache key check if message_id format differs
+        # Retrieve using chat_id which matches how it's stored in /trending
+        cache_key = f"tr_{call.message.chat.id}"
         results = SEARCH_CACHE.get(cache_key)
+
+        # Fallback check if stored differently
         if not results:
-            # Try matching any recent trending cache key if exact reply link is missing
             for k in list(SEARCH_CACHE.keys()):
                 if k.startswith("tr_"):
                     results = SEARCH_CACHE[k]
@@ -877,9 +884,8 @@ def handle_trending_selection(call):
         ]
         caption_text = "\n".join(caption_lines)
 
-        # Create markup with Close button (using telebot types)
         markup = InlineKeyboardMarkup()
-        markup.add(InlineKeyboardButton(text="• Cʟᴏsᴇ •", callback_data="help_close")) # Reuses your existing close handler
+        markup.add(InlineKeyboardButton(text="• Cʟᴏsᴇ •", callback_data="help_close"))
 
         try:
             bot.delete_message(call.message.chat.id, call.message.message_id)
@@ -903,7 +909,6 @@ def handle_trending_selection(call):
             )
     except Exception as e:
         print(f"Trending selection error: {e}")
-
 
 # ------------------------ #
 # Don't Remove My Credits
