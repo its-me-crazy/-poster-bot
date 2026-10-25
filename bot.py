@@ -238,7 +238,6 @@ OWNER_ID = 7284759394 #replace your Telegram ID
 # Support : @Coders_Grp 
 # ------------------------ #
 
-# Custom Image URLs
 START_IMAGE_URL = "https://telegra.ph/file/2ab528ba65c23832cdcf6-4ff26f1b433ef961eb.jpg"
 ABOUT_IMAGE_URL = "https://graph.org/file/283e03b08d8306b8d85af-8436c3be9697b2374c.jpg"
 FSUB_IMAGE_URL  = "https://telegra.ph/file/1d504928e362876977269-fdfcffde7ab2ca4ed0.jpg"
@@ -832,13 +831,6 @@ def handle_all_callbacks(call):
 # Support : @Coders_Grp 
 # ------------------------ #
 
-# ------------------------ #
-# Don't Remove My Credits
-# Owner: @Mr_Mohammed_29
-# Updates: @Aero_Unity 
-# Support : @Coders_Grp 
-# ------------------------ #
-
 @bot.callback_query_handler(func=lambda call: call.data.startswith("tr_select_"))
 def handle_trending_selection(call):
     try:
@@ -848,11 +840,9 @@ def handle_trending_selection(call):
 
     try:
         idx = int(call.data.split("_")[-1])
-        # Retrieve using chat_id which matches how it's stored in /trending
         cache_key = f"tr_{call.message.chat.id}"
         results = SEARCH_CACHE.get(cache_key)
 
-        # Fallback check if stored differently
         if not results:
             for k in list(SEARCH_CACHE.keys()):
                 if k.startswith("tr_"):
@@ -1059,6 +1049,13 @@ def remove_force_sub(message):
     else:
         bot.reply_to(message, " <code>/removeforce @channelusername</code>", parse_mode="HTML")
 
+# ------------------------ #
+# Don't Remove My Credits
+# Owner: @Mr_Mohammed_29
+# Updates: @Aero_Unity 
+# Support : @Coders_Grp 
+# ------------------------ #
+
 @bot.message_handler(commands=['fsublist'])
 def list_force_sub(message):
     if message.from_user.id != OWNER_ID:
@@ -1221,7 +1218,6 @@ def handle_airing_command(message):
 
     status_msg = bot.reply_to(message, f"<b><i>Searching official airing data for <code>{html.escape(query)}</code>...</i></b>", parse_mode="HTML")
 
-    # 1. Fetch from AniList GraphQL for accurate airing schedules & season/episode info
     anilist_query = """
     query ($search: String) {
       Media (search: $search, type: ANIME) {
@@ -1260,9 +1256,8 @@ def handle_airing_command(message):
         title_native = media["title"].get("native", "")
         next_ep = media.get("nextAiringEpisode")
         status = media.get("status", "UNKNOWN")
-        
-        # Determine season info dynamically from official metadata or query fallback
         season_num = "1"
+        
         if media.get("season"):
             season_num = media.get("season").capitalize()
         import re
@@ -1274,7 +1269,6 @@ def handle_airing_command(message):
         if title_native:
             title_display += f" (<i>{html.escape(title_native)}</i>)"
 
-        # Episode info calculation
         if next_ep:
             ep_num = str(next_ep["episode"])
             seconds_left = next_ep["timeUntilAiring"]
@@ -1289,16 +1283,14 @@ def handle_airing_command(message):
             ep_num = "N/A (Completed/Ended)"
             airing_status_str = "FINISHED AIRING" if status == "FINISHED" else "NOT YET RELEASED / OFF-SEASON"
 
-        # Build formatted output text
         airing_text = (
-            f"Title : {title_display}\n\n"
-            f" ›› Season : <code>{season_num}</code>\n"
-            f" ›› Episode  : <code>{ep_num}</code>\n"
-            f" ›› Audio : Japanese [Eng-Sub]\n"
-            f" ›› Airing Episode Soon  : <b>{airing_status_str}</b>"
+            f" <b>›› Title :</b> {title_display}\n"
+            f" <b>›› Season :</b> <code>{season_num}</code>\n"
+            f" <b>›› Episode :<b> <code>{ep_num}</code>\n"
+            f" <b>›› Audio :</b> Japanese [Eng-Sub]\n"
+            f" <b>›› Next Air :</b> <b>{airing_status_str}</b>"
         )
 
-        # Create Close Button markup
         markup = InlineKeyboardMarkup()
         markup.add(InlineKeyboardButton(text="• Cʟᴏsᴇ •", callback_data="help_close"))
 
@@ -1307,7 +1299,6 @@ def handle_airing_command(message):
 
     except Exception as e:
         bot.edit_message_text(f"⚠️ Error fetching from official APIs: <code>{html.escape(str(e))}</code>", message.chat.id, status_msg.message_id, parse_mode="HTML")
-
 
 # ------------------------ #
 # Don't Remove My Credits
@@ -1322,11 +1313,10 @@ def handle_set_branding(message):
     if database.is_banned(user_id):
         return
 
-    # Split command text to extract the user's custom branding input
     args = message.text.split(maxsplit=1)
     
     if len(args) < 2:
-        # Fetch current branding from the database (make sure database.py handles this table/column properly)
+        
         try:
             current_brand = database.get_user_branding(user_id) or "None Set"
         except Exception:
@@ -1347,7 +1337,7 @@ def handle_set_branding(message):
         return
 
     try:
-        # Save the new branding into your database
+    
         database.set_user_branding(user_id, new_branding)
         bot.reply_to(
             message, 
@@ -1356,26 +1346,6 @@ def handle_set_branding(message):
         )
     except Exception as e:
         bot.reply_to(message, f"⚠️ Failed to update branding due to a database error: {e}", parse_mode="HTML")
-
-# ------------------------ #
-# Don't Remove My Credits
-# Owner: @Mr_Mohammed_29
-# Updates: @Aero_Unity 
-# Support : @Coders_Grp 
-# ------------------------ #
-
-@bot.message_handler(commands=['search'])
-def handle_search_command(message):
-    user_id = message.from_user.id
-    if database.is_banned(user_id):
-        return
-
-    query = message.text.replace("/search", "").strip()
-    if not query:
-        bot.reply_to(message, "<b>Usage:</b> <code>/search [title]</code>", parse_mode="HTML")
-        return
-
-    imdb_command(message)
 
 # ------------------------ #
 # Don't Remove My Credits
@@ -1443,10 +1413,9 @@ def handle_trending(message):
         for idx, item in enumerate(results):
             title = item.get("title") or item.get("name")
             media_type = item.get("media_type", "movie").upper()
-            markup.add(InlineKeyboardButton(text=f"🔥 {title} [{media_type}]", callback_data=f"tr_select_{idx}"))
+            markup.add(InlineKeyboardButton(text=f"›› {title} [{media_type}]", callback_data=f"tr_select_{idx}"))
 
         SEARCH_CACHE[f"tr_{message.chat.id}"] = results
-
 
         bot.delete_message(message.chat.id, status_msg.message_id)
         bot.send_message(
@@ -1964,7 +1933,6 @@ def imdb_command(message):
 
     query = args[1].strip()
     status_msg = bot.reply_to(message, "<b><i>Searching TMDb...</i></b>", parse_mode="HTML")
-
     search_url = f"https://api.themoviedb.org/3/search/multi?api_key={TMDB_API_KEY}&query={requests.utils.quote(query)}&include_adult=true"
 
     try:
@@ -2022,7 +1990,7 @@ def handle_random_poster(message):
     if database.is_banned(user_id):
         return
 
-    status_msg = bot.reply_to(message, "🎲 <b>Fetching a random title for you...</b>", parse_mode="HTML")
+    status_msg = bot.reply_to(message, "<b>Fetching a random title for you...</b>", parse_mode="HTML")
     
     page = random.randint(1, 10)
     url = f"https://api.themoviedb.org/3/trending/all/day?api_key={TMDB_API_KEY}&page={page}"
@@ -2199,7 +2167,6 @@ def movie_poster_handler(message):
     except Exception as e:
         bot.reply_to(message, f"❌ Error sending poster: {e}", parse_mode="HTML")
 
-
 # ------------------------ #
 # Don't Remove My Credits
 # Owner: @Mr_Mohammed_29
@@ -2266,7 +2233,6 @@ def manga_command_handler(message):
         cover_url = media.get("coverImage", {}).get("extraLarge") or media.get("coverImage", {}).get("large")
         banner_url = media.get("bannerImage") or cover_url
 
-        # Collect multiple artworks (Banner, Cover, and Character Images) for swiping
         artworks = []
         if banner_url:
             artworks.append(banner_url)
@@ -3118,6 +3084,13 @@ def handle_ani(message):
         return
     send_style_poster_response(message, "ani", query)  # Removed hardcoded string
 
+# ------------------------ #
+# Don't Remove My Credits
+# Owner: @Mr_Mohammed_29
+# Updates: @Aero_Unity 
+# Support : @Coders_Grp 
+# ------------------------ #
+    
 @bot.message_handler(commands=['anim'])
 def handle_anim(message):
     query = message.text.replace("/anim", "").strip()
@@ -3125,6 +3098,13 @@ def handle_anim(message):
         bot.reply_to(message, "⚠️ <b>Usage:</b> /anim\n<b>Example:</b> <code>/anim Naruto</code>", parse_mode="HTML")
         return
     send_style_poster_response(message, "anim", query)
+
+# ------------------------ #
+# Don't Remove My Credits
+# Owner: @Mr_Mohammed_29
+# Updates: @Aero_Unity 
+# Support : @Coders_Grp 
+# ------------------------ #
 
 @bot.message_handler(commands=['crun'])
 def handle_crun(message):
@@ -3134,6 +3114,13 @@ def handle_crun(message):
         return
     send_style_poster_response(message, "crun", query)
 
+# ------------------------ #
+# Don't Remove My Credits
+# Owner: @Mr_Mohammed_29
+# Updates: @Aero_Unity 
+# Support : @Coders_Grp 
+# ------------------------ #
+
 @bot.message_handler(commands=['net'])
 def handle_net(message):
     query = message.text.replace("/net", "").strip()
@@ -3141,6 +3128,13 @@ def handle_net(message):
         bot.reply_to(message, "⚠️ <b>Usage:</b> /net\n<b>Example:</b> <code>/net Naruto</code>", parse_mode="HTML")
         return
     send_style_poster_response(message, "net", query)
+
+# ------------------------ #
+# Don't Remove My Credits
+# Owner: @Mr_Mohammed_29
+# Updates: @Aero_Unity 
+# Support : @Coders_Grp 
+# ------------------------ #
 
 @bot.message_handler(commands=['netm'])
 def handle_netm(message):
@@ -3150,6 +3144,13 @@ def handle_netm(message):
         return
     send_style_poster_response(message, "netm", query)
 
+# ------------------------ #
+# Don't Remove My Credits
+# Owner: @Mr_Mohammed_29
+# Updates: @Aero_Unity 
+# Support : @Coders_Grp 
+# ------------------------ #
+
 @bot.message_handler(commands=['light'])
 def handle_light(message):
     query = message.text.replace("/light", "").strip()
@@ -3157,6 +3158,13 @@ def handle_light(message):
         bot.reply_to(message, "⚠️ <b>Usage:</b> /light\n<b>Example:</b> <code>/light Naruto</code>", parse_mode="HTML")
         return
     send_style_poster_response(message, "light", query)
+
+# ------------------------ #
+# Don't Remove My Credits
+# Owner: @Mr_Mohammed_29
+# Updates: @Aero_Unity 
+# Support : @Coders_Grp 
+# ------------------------ #
 
 @bot.message_handler(commands=['lightm'])
 def handle_lightm(message):
@@ -3166,6 +3174,13 @@ def handle_lightm(message):
         return
     send_style_poster_response(message, "lightm", query)
 
+# ------------------------ #
+# Don't Remove My Credits
+# Owner: @Mr_Mohammed_29
+# Updates: @Aero_Unity 
+# Support : @Coders_Grp 
+# ------------------------ #
+
 @bot.message_handler(commands=['dark'])
 def handle_dark(message):
     query = message.text.replace("/dark", "").strip()
@@ -3173,6 +3188,13 @@ def handle_dark(message):
         bot.reply_to(message, "⚠️ <b>Usage:</b> /dark\n<b>Example:</b> <code>/dark Naruto</code>", parse_mode="HTML")
         return
     send_style_poster_response(message, "dark", query)
+
+# ------------------------ #
+# Don't Remove My Credits
+# Owner: @Mr_Mohammed_29
+# Updates: @Aero_Unity 
+# Support : @Coders_Grp 
+# ------------------------ #
 
 @bot.message_handler(commands=['darkm'])
 def handle_darkm(message):
@@ -3182,6 +3204,13 @@ def handle_darkm(message):
         return
     send_style_poster_response(message, "darkm", query)
 
+# ------------------------ #
+# Don't Remove My Credits
+# Owner: @Mr_Mohammed_29
+# Updates: @Aero_Unity 
+# Support : @Coders_Grp 
+# ------------------------ #
+
 @bot.message_handler(commands=['netcr'])
 def handle_netcr(message):
     query = message.text.replace("/netcr", "").strip()
@@ -3190,6 +3219,13 @@ def handle_netcr(message):
         return
     send_style_poster_response(message, "netcr", query)
 
+# ------------------------ #
+# Don't Remove My Credits
+# Owner: @Mr_Mohammed_29
+# Updates: @Aero_Unity 
+# Support : @Coders_Grp 
+# ------------------------ #
+
 @bot.message_handler(commands=['mod'])
 def handle_mod(message):
     query = message.text.replace("/mod", "").strip()
@@ -3197,6 +3233,13 @@ def handle_mod(message):
         bot.reply_to(message, "⚠️ <b>Usage:</b> /mod\n<b>Example:</b> <code>/mod Jujutsu Kaisen</code>", parse_mode="HTML")
         return
     send_style_poster_response(message, "mod", query)
+
+# ------------------------ #
+# Don't Remove My Credits
+# Owner: @Mr_Mohammed_29
+# Updates: @Aero_Unity 
+# Support : @Coders_Grp 
+# ------------------------ #
 
 @bot.message_handler(commands=['modm'])
 def handle_modm(message):
