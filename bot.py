@@ -1179,7 +1179,7 @@ def broadcast_unpin_handler(message):
 # Updates: @Aero_Unity 
 # Support : @Coders_Grp 
 # ------------------------ #
-
+.
 @bot.message_handler(commands=['airing'])
 def handle_airing_command(message):
     user_id = message.from_user.id
@@ -1237,7 +1237,6 @@ def handle_airing_command(message):
         season_num = "1"
         if media.get("season"):
             season_num = media.get("season").capitalize()
-        # If user query specifies a season number (e.g. "Season 2"), extract it automatically
         import re
         season_match = re.search(r'(?:season|s)\s*(\d+)', query, re.IGNORECASE)
         if season_match:
@@ -1280,19 +1279,7 @@ def handle_airing_command(message):
 
     except Exception as e:
         bot.edit_message_text(f"⚠️ Error fetching from official APIs: <code>{html.escape(str(e))}</code>", message.chat.id, status_msg.message_id, parse_mode="HTML")
-        else:
-            status_str = "FINISHED AIRING" if status == "FINISHED" else "NOT YET RELEASED / RELEASING"
-            airing_text = (
-                f"{title_display}\n\n"
-                f"📌 <b>Status:</b> <code>{status_str}</code>\n"
-                "ℹ️ <i>No upcoming episode schedule found.</i>"
-            )
 
-        bot.delete_message(message.chat.id, status_msg.message_id)
-        bot.send_message(message.chat.id, airing_text, parse_mode="HTML")
-
-    except Exception as e:
-        bot.edit_message_text(f"⚠️ Error fetching airing status: <code>{html.escape(str(e))}</code>", message.chat.id, status_msg.message_id, parse_mode="HTML")
 
 # ------------------------ #
 # Don't Remove My Credits
