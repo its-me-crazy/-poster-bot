@@ -2845,7 +2845,7 @@ def generate_custom_media_card(poster_bytes, portrait_bytes_list, title, genres,
             draw.text((850, sy), line, fill=(200, 200, 200), font=get_font(12, bold=False))
             sy += 18
 
-    draw.text((target_w - 140, target_h - 30), "@Aero_Unity", fill=(200, 200, 200), font=get_font(12, bold=True))
+    draw.text((target_w - 220, target_h - 30), branding, fill=(200, 200, 200), font=get_font(12, bold=True))
 
     output = io.BytesIO()
     canvas.convert("RGB").save(output, format="JPEG", quality=95)
