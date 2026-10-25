@@ -3153,7 +3153,8 @@ def generate_custom_media_card(poster_bytes, portrait_bytes_list, title, genres,
             draw.text((850, sy), line, fill=(200, 200, 200), font=get_font(12, bold=False))
             sy += 18
 
-    draw.text((target_w - 220, target_h - 30), branding, fill=(200, 200, 200), font=get_font(12, bold=True))
+    display_branding = f"By {branding}" if not branding.lower().startswith("by ") else branding
+    draw.text((target_w - 240, target_h - 35), display_branding, fill=(220, 220, 220), font=get_font(14, bold=True))
 
     output = io.BytesIO()
     canvas.convert("RGB").save(output, format="JPEG", quality=95)
