@@ -1,9 +1,11 @@
 import os
+import sqlite3
 from pymongo import MongoClient
 
 # Use MongoDB URI from Render environment variables, or local fallback
 MONGO_URI = os.environ.get("MONGO_URI", "mongodb://localhost:27017/")
 DB_NAME = "mohammed_poster_bot"
+DB_FILE = "bot_database.db"
 
 try:
     client = MongoClient(MONGO_URI, serverSelectionTimeoutMS=5000)
@@ -13,8 +15,6 @@ try:
     USE_MONGO = True
 except Exception:
     USE_MONGO = False
-    import sqlite3
-    DB_FILE = "bot_database.db"
 
 def init_db():
     if not USE_MONGO:
@@ -24,6 +24,7 @@ def init_db():
         cursor.execute("CREATE TABLE IF NOT EXISTS fsub_channels (channel TEXT PRIMARY KEY)")
         cursor.execute("CREATE TABLE IF NOT EXISTS banned_users (user_id INTEGER PRIMARY KEY)")
         cursor.execute("CREATE TABLE IF NOT EXISTS settings (key TEXT PRIMARY KEY, value INTEGER DEFAULT 1)")
+        cursor.execute("CREATE TABLE IF NOT EXISTS user_branding (user_id INTEGER PRIMARY KEY, branding TEXT)")
         cursor.execute("INSERT OR IGNORE INTO settings (key, value) VALUES ('global_pm_search', 1)")
         conn.commit()
         conn.close()
@@ -191,33 +192,49 @@ def remove_fsub_channel(channel):
 
 def set_user_branding(user_id, branding_text):
     """Saves or updates custom poster branding for a specific user."""
-    conn = sqlite3.connect("database.db")
-    cursor = conn.cursor()
-    cursor.execute("""
-        CREATE TABLE IF NOT EXISTS user_branding (
-            user_id INTEGER PRIMARY KEY,
-            branding TEXT
-        )
-    """)
-    cursor.execute("""
-        INSERT OR REPLACE INTO user_branding (user_id, branding) 
-        VALUES (?, ?)
-    """, (user_id, branding_text))
-    conn.commit()
-    conn.close()
+    try:
+        if USE_MONGO:
+            db.user_branding.update_one(
+                {"user_id": user_id}, 
+                {"$set": {"branding": branding_text}}, 
+                upsert=True
+            )
+        else:
+            conn = sqlite3.connect(DB_FILE)
+            cursor = conn.cursor()
+            cursor.execute("""
+                CREATE TABLE IF NOT EXISTS user_branding (
+                    user_id INTEGER PRIMARY KEY,
+                    branding TEXT
+                )
+            """)
+            cursor.execute("""
+                INSERT OR REPLACE INTO user_branding (user_id, branding) 
+                VALUES (?, ?)
+            """, (user_id, branding_text))
+            conn.commit()
+            conn.close()
+    except Exception as e:
+        print(f"Error setting branding: {e}")
 
 def get_user_branding(user_id):
     """Retrieves custom branding for a user. Defaults to @Aero_Unity if not set."""
-    conn = sqlite3.connect("database.db")
-    cursor = conn.cursor()
-    cursor.execute("""
-        CREATE TABLE IF NOT EXISTS user_branding (
-            user_id INTEGER PRIMARY KEY,
-            branding TEXT
-        )
-    """)
-    cursor.execute("SELECT branding FROM user_branding WHERE user_id = ?", (user_id,))
-    row = cursor.fetchone()
-    conn.close()
-    return row[0] if row else "@Aero_Unity"
-
+    try:
+        if USE_MONGO:
+            res = db.user_branding.find_one({"user_id": user_id})
+            return res["branding"] if res and "branding" in res else "@Aero_Unity"
+        else:
+            conn = sqlite3.connect(DB_FILE)
+            cursor = conn.cursor()
+            cursor.execute("""
+                CREATE TABLE IF NOT EXISTS user_branding (
+                    user_id INTEGER PRIMARY KEY,
+                    branding TEXT
+                )
+            """)
+            cursor.execute("SELECT branding FROM user_branding WHERE user_id = ?", (user_id,))
+            row = cursor.fetchone()
+            conn.close()
+            return row[0] if row else "@Aero_Unity"
+    except Exception:
+        return "@Aero_Unity"
