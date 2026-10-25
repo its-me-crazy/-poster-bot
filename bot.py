@@ -202,6 +202,13 @@ query ($search: String) {
       large
     }
     bannerImage
+    characters(perPage: 5, sort: [ROLE, FAVOURITES_DESC]) {
+      nodes {
+        image {
+          large
+        }
+      }
+    }
   }
 }
 """
@@ -2209,7 +2216,6 @@ def manga_command_handler(message):
     status_msg = bot.reply_to(message, "⚙️ <b>ɢᴇɴᴇʀᴀᴛɪɴɢ ᴍᴀɴɢᴀ ᴄᴀʀᴅ, ᴡᴀɪᴛ a sec...</b>", parse_mode="HTML")
 
     try:
-        
         response = requests.post(
             ANILIST_API_URL, 
             json={'query': ANILIST_MANGA_QUERY, 'variables': {'search': query}},
@@ -2255,11 +2261,22 @@ def manga_command_handler(message):
         cover_url = media.get("coverImage", {}).get("extraLarge") or media.get("coverImage", {}).get("large")
         banner_url = media.get("bannerImage") or cover_url
 
-        artworks = [banner_url] if banner_url else [cover_url]
-        posters = [cover_url, cover_url]
+        # Collect multiple artworks (Banner, Cover, and Character Images) for swiping
+        artworks = []
+        if banner_url:
+            artworks.append(banner_url)
+        if cover_url:
+            artworks.append(cover_url)
 
-        img_bytes = requests.get(cover_url, timeout=5).content if cover_url else None
-        p_bytes_list = [img_bytes, img_bytes]
+        for char in media.get("characters", {}).get("nodes", []):
+            char_img = char.get("image", {}).get("large")
+            if char_img and char_img not in artworks:
+                artworks.append(char_img)
+
+        if not artworks:
+            artworks = ["https://graph.org/file/faf795187aa693e1024a4-746b376c8dcc889d4f.jpg"]
+
+        posters = [cover_url, cover_url] if cover_url else artworks[:2]
 
         search_id = str(message.message_id)
         SEARCH_CACHE[search_id] = {
@@ -2276,6 +2293,9 @@ def manga_command_handler(message):
             "file_ids": {}
         }
 
+        current_index = 0
+        total_pages = len(artworks)
+
         caption_text = (
             f"<b>{html.escape(title)}</b> ❞\n\n"
             f"» <b>Tʏᴘᴇ :</b> {detected_type}\n"
@@ -2286,6 +2306,14 @@ def manga_command_handler(message):
             f"▶ <u><b>Sʏɴᴏᴘsɪs</b></u>\n"
             f"<b>➔</b> <i>{html.escape(synopsis[:400])}...</i> ❞"
         )
+
+        img_bytes = requests.get(artworks[current_index], timeout=5).content
+        p_bytes_list = []
+        for p_url in posters[:3]:
+            try:
+                p_bytes_list.append(requests.get(p_url, timeout=4).content)
+            except Exception:
+                p_bytes_list.append(img_bytes)
 
         user_branding = database.get_user_branding(user_id) or "Manga Aero"
 
@@ -2306,10 +2334,13 @@ def manga_command_handler(message):
         )
 
         markup = InlineKeyboardMarkup()
+        prev_idx = (current_index - 1) % total_pages
+        next_idx = (current_index + 1) % total_pages
+
         markup.row(
-            InlineKeyboardButton(text="• ᴘʀᴇᴠ •", callback_data=f"media_card_{search_id}_0"),
-            InlineKeyboardButton(text="01/01", callback_data="noop"),
-            InlineKeyboardButton(text="• ɴᴇxᴛ •", callback_data=f"media_card_{search_id}_0")
+            InlineKeyboardButton(text="• ᴘʀᴇᴠ •", callback_data=f"media_card_{search_id}_{prev_idx}"),
+            InlineKeyboardButton(text=f"{current_index+1:02d}/{total_pages:02d}", callback_data="noop"),
+            InlineKeyboardButton(text="• ɴᴇxᴛ •", callback_data=f"media_card_{search_id}_{next_idx}")
         )
         markup.row(InlineKeyboardButton(text="• ᴄᴀɴᴄᴇʟ •", callback_data="cancel_session"))
 
