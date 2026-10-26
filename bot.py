@@ -2393,7 +2393,7 @@ def detect_media_type_and_studio(item, session, tmdb_api_key):
 
     return detected_type, studio_name
 
-# ------------------------ #
+# ----------------------- #
 # Don't Remove My Credits
 # Owner: @Mr_Mohammed_29
 # Updates: @Aero_Unity 
@@ -2415,6 +2415,13 @@ def generate_custom_media_card(poster_bytes, portrait_bytes_list, title, genres,
     except Exception:
         match_pct = 84
 
+# ------------------------ #
+# Don't Remove My Credits
+# Owner: @Mr_Mohammed_29
+# Updates: @Aero_Unity 
+# Support : @Coders_Grp 
+# ------------------------ #
+
     def get_font(size, bold=False):
         font_paths = [
             "/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf" if bold else "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf",
@@ -2434,6 +2441,13 @@ def generate_custom_media_card(poster_bytes, portrait_bytes_list, title, genres,
     except Exception:
         base_backdrop = Image.new("RGBA", (target_w, target_h), (15, 15, 20, 255))
     
+# ------------------------ #
+# Don't Remove My Credits
+# Owner: @Mr_Mohammed_29
+# Updates: @Aero_Unity 
+# Support : @Coders_Grp 
+# ------------------------ #
+
     if "ANILIST" in b_upper:
         bg_color = (21, 31, 46, 255) if "ANIME" in b_upper else (15, 23, 36, 255)
         canvas = Image.new("RGBA", (target_w, target_h), bg_color)
@@ -2502,6 +2516,13 @@ def generate_custom_media_card(poster_bytes, portrait_bytes_list, title, genres,
         draw.rectangle([0, 680, target_w, 720], fill=(11, 22, 34))
         draw.text((30, 688), "ANILIST", fill=(255, 255, 255), font=get_font(22, bold=True))
     
+# ------------------------ #
+# Don't Remove My Credits
+# Owner: @Mr_Mohammed_29
+# Updates: @Aero_Unity 
+# Support : @Coders_Grp 
+# ------------------------ #
+
     elif "NETFLIX" in b_upper or "NETCR" in b_upper:
         canvas = base_backdrop.copy()
         vignette = Image.new("RGBA", (target_w, target_h), (0, 0, 0, 0))
@@ -2548,6 +2569,13 @@ def generate_custom_media_card(poster_bytes, portrait_bytes_list, title, genres,
         
         draw.text((1180, 640), f"★ {rating_val}", fill=(255, 215, 0), font=get_font(18, bold=True))
     
+# ------------------------ #
+# Don't Remove My Credits
+# Owner: @Mr_Mohammed_29
+# Updates: @Aero_Unity 
+# Support : @Coders_Grp 
+# ------------------------ #
+
     elif "CRUNCHYROLL" in b_upper:
         canvas = base_backdrop.copy()
         top_bar = Image.new("RGBA", (target_w, 60), (18, 18, 18, 230))
@@ -2588,6 +2616,13 @@ def generate_custom_media_card(poster_bytes, portrait_bytes_list, title, genres,
             draw.text((60, sy), line, fill=(220, 220, 220), font=get_font(14, bold=False))
             sy += 22
     
+# ------------------------ #
+# Don't Remove My Credits
+# Owner: @Mr_Mohammed_29
+# Updates: @Aero_Unity 
+# Support : @Coders_Grp 
+# ------------------------ #
+
     elif ("AERO" in b_upper or "LIGHT" in b_upper) and "MOD" not in b_upper:
         canvas = Image.new("RGBA", (target_w, target_h), (255, 255, 255, 255))
         art_left = ImageOps.fit(raw_art, (640, target_h), method=Image.Resampling.LANCZOS)
@@ -2647,6 +2682,13 @@ def generate_custom_media_card(poster_bytes, portrait_bytes_list, title, genres,
         draw.ellipse([910, 535, 990, 615], fill=(230, 50, 50))
         draw.text((940, 555), "+", fill=(255, 255, 255), font=get_font(28, bold=True))
     
+# ------------------------ #
+# Don't Remove My Credits
+# Owner: @Mr_Mohammed_29
+# Updates: @Aero_Unity 
+# Support : @Coders_Grp 
+# ------------------------ #
+
     elif "MOD" in b_upper:
         canvas = base_backdrop.copy()
         overlay = Image.new("RGBA", (target_w, target_h), (10, 10, 15, 200))
@@ -2751,6 +2793,13 @@ def generate_custom_media_card(poster_bytes, portrait_bytes_list, title, genres,
             draw.text((card_x + 15, sy), line, fill=(200, 200, 200), font=get_font(11, bold=False))
             sy += 18
     
+# ------------------------ #
+# Don't Remove My Credits
+# Owner: @Mr_Mohammed_29
+# Updates: @Aero_Unity 
+# Support : @Coders_Grp 
+# ------------------------ #
+
     elif "WEBTOON" in b_upper or "DARK" in b_upper:
         is_darkm = "MANGA" in b_upper or "DARKM" in b_upper
         bg_color = (35, 10, 25, 255) if is_darkm else (55, 10, 35, 255)
@@ -2792,6 +2841,13 @@ def generate_custom_media_card(poster_bytes, portrait_bytes_list, title, genres,
         draw.rounded_rectangle([210, 530, 450, 580], radius=25, fill=(255, 255, 255))
         draw.text((275 if is_darkm else 265, 548), btn_label, fill=(55, 10, 35), font=get_font(14, bold=True))
     
+# ------------------------ #
+# Don't Remove My Credits
+# Owner: @Mr_Mohammed_29
+# Updates: @Aero_Unity 
+# Support : @Coders_Grp 
+# ------------------------ #
+
     else:
         canvas = base_backdrop.copy()
         overlay = Image.new("RGBA", (target_w, target_h), (0, 0, 0, 160))
@@ -2851,7 +2907,6 @@ def generate_custom_media_card(poster_bytes, portrait_bytes_list, title, genres,
 # ------------------------ #
 
 def send_style_poster_response(message, cmd, query, branding_name=None):
-
     user_id = message.from_user.id
     
     if message.chat.type == "private" and user_id != OWNER_ID:
@@ -2886,7 +2941,7 @@ def send_style_poster_response(message, cmd, query, branding_name=None):
     
     status_msg = bot.reply_to(
         message, 
-        f" <b>Generating {style_label} poster for <code>{html.escape(query)}</code>, please wait...</b>", 
+        f"⚙️ <b>Generating {style_label} poster for <code>{html.escape(query)}</code>, please wait...</b>", 
         parse_mode="HTML"
     )
     
@@ -3019,7 +3074,7 @@ def send_style_poster_response(message, cmd, query, branding_name=None):
 
         logo_url = get_tmdb_logo_url(item_id, endpoint)
         
-        user_branding = database.get_user_branding(user_id) or branding_name or "Aero Unity"
+        user_branding = database.get_user_branding(user_id) if hasattr(database, "get_user_branding") else (branding_name or "@Aero_Unity")
         
         card_io = generate_custom_media_card(
             poster_bytes=img_bytes,
@@ -3082,29 +3137,15 @@ def handle_ani(message):
     if not query:
         bot.reply_to(message, "⚠️ <b>Usage:</b> /ani\n<b>Example:</b> <code>/ani Naruto</code>", parse_mode="HTML")
         return
-    send_style_poster_response(message, "ani", query)  # Removed hardcoded string
+    send_style_poster_response(message, "ani", query, "@Aero_Unity")
 
-# ------------------------ #
-# Don't Remove My Credits
-# Owner: @Mr_Mohammed_29
-# Updates: @Aero_Unity 
-# Support : @Coders_Grp 
-# ------------------------ #
-    
 @bot.message_handler(commands=['anim'])
 def handle_anim(message):
     query = message.text.replace("/anim", "").strip()
     if not query:
         bot.reply_to(message, "⚠️ <b>Usage:</b> /anim\n<b>Example:</b> <code>/anim Naruto</code>", parse_mode="HTML")
         return
-    send_style_poster_response(message, "anim", query)
-
-# ------------------------ #
-# Don't Remove My Credits
-# Owner: @Mr_Mohammed_29
-# Updates: @Aero_Unity 
-# Support : @Coders_Grp 
-# ------------------------ #
+    send_style_poster_response(message, "anim", query, "@Aero_Unity")
 
 @bot.message_handler(commands=['crun'])
 def handle_crun(message):
@@ -3112,14 +3153,7 @@ def handle_crun(message):
     if not query:
         bot.reply_to(message, "⚠️ <b>Usage:</b> /crun\n<b>Example:</b> <code>/crun Naruto</code>", parse_mode="HTML")
         return
-    send_style_poster_response(message, "crun", query)
-
-# ------------------------ #
-# Don't Remove My Credits
-# Owner: @Mr_Mohammed_29
-# Updates: @Aero_Unity 
-# Support : @Coders_Grp 
-# ------------------------ #
+    send_style_poster_response(message, "crun", query, "@Aero_Unity")
 
 @bot.message_handler(commands=['net'])
 def handle_net(message):
@@ -3127,14 +3161,7 @@ def handle_net(message):
     if not query:
         bot.reply_to(message, "⚠️ <b>Usage:</b> /net\n<b>Example:</b> <code>/net Naruto</code>", parse_mode="HTML")
         return
-    send_style_poster_response(message, "net", query)
-
-# ------------------------ #
-# Don't Remove My Credits
-# Owner: @Mr_Mohammed_29
-# Updates: @Aero_Unity 
-# Support : @Coders_Grp 
-# ------------------------ #
+    send_style_poster_response(message, "net", query, "@Aero_Unity")
 
 @bot.message_handler(commands=['netm'])
 def handle_netm(message):
@@ -3142,14 +3169,7 @@ def handle_netm(message):
     if not query:
         bot.reply_to(message, "⚠️ <b>Usage:</b> /netm\n<b>Example:</b> <code>/netm Naruto</code>", parse_mode="HTML")
         return
-    send_style_poster_response(message, "netm", query)
-
-# ------------------------ #
-# Don't Remove My Credits
-# Owner: @Mr_Mohammed_29
-# Updates: @Aero_Unity 
-# Support : @Coders_Grp 
-# ------------------------ #
+    send_style_poster_response(message, "netm", query, "@Aero_Unity")
 
 @bot.message_handler(commands=['light'])
 def handle_light(message):
@@ -3157,14 +3177,7 @@ def handle_light(message):
     if not query:
         bot.reply_to(message, "⚠️ <b>Usage:</b> /light\n<b>Example:</b> <code>/light Naruto</code>", parse_mode="HTML")
         return
-    send_style_poster_response(message, "light", query)
-
-# ------------------------ #
-# Don't Remove My Credits
-# Owner: @Mr_Mohammed_29
-# Updates: @Aero_Unity 
-# Support : @Coders_Grp 
-# ------------------------ #
+    send_style_poster_response(message, "light", query, "@Aero_Unity")
 
 @bot.message_handler(commands=['lightm'])
 def handle_lightm(message):
@@ -3172,14 +3185,7 @@ def handle_lightm(message):
     if not query:
         bot.reply_to(message, "⚠️ <b>Usage:</b> /lightm\n<b>Example:</b> <code>/lightm Naruto</code>", parse_mode="HTML")
         return
-    send_style_poster_response(message, "lightm", query)
-
-# ------------------------ #
-# Don't Remove My Credits
-# Owner: @Mr_Mohammed_29
-# Updates: @Aero_Unity 
-# Support : @Coders_Grp 
-# ------------------------ #
+    send_style_poster_response(message, "lightm", query, "@Aero_Unity")
 
 @bot.message_handler(commands=['dark'])
 def handle_dark(message):
@@ -3187,14 +3193,7 @@ def handle_dark(message):
     if not query:
         bot.reply_to(message, "⚠️ <b>Usage:</b> /dark\n<b>Example:</b> <code>/dark Naruto</code>", parse_mode="HTML")
         return
-    send_style_poster_response(message, "dark", query)
-
-# ------------------------ #
-# Don't Remove My Credits
-# Owner: @Mr_Mohammed_29
-# Updates: @Aero_Unity 
-# Support : @Coders_Grp 
-# ------------------------ #
+    send_style_poster_response(message, "dark", query, "@Aero_Unity")
 
 @bot.message_handler(commands=['darkm'])
 def handle_darkm(message):
@@ -3202,14 +3201,7 @@ def handle_darkm(message):
     if not query:
         bot.reply_to(message, "⚠️ <b>Usage:</b> /darkm\n<b>Example:</b> <code>/darkm Naruto</code>", parse_mode="HTML")
         return
-    send_style_poster_response(message, "darkm", query)
-
-# ------------------------ #
-# Don't Remove My Credits
-# Owner: @Mr_Mohammed_29
-# Updates: @Aero_Unity 
-# Support : @Coders_Grp 
-# ------------------------ #
+    send_style_poster_response(message, "darkm", query, "@Aero_Unity")
 
 @bot.message_handler(commands=['netcr'])
 def handle_netcr(message):
@@ -3217,14 +3209,7 @@ def handle_netcr(message):
     if not query:
         bot.reply_to(message, "⚠️ <b>Usage:</b> /netcr\n<b>Example:</b> <code>/netcr Naruto</code>", parse_mode="HTML")
         return
-    send_style_poster_response(message, "netcr", query)
-
-# ------------------------ #
-# Don't Remove My Credits
-# Owner: @Mr_Mohammed_29
-# Updates: @Aero_Unity 
-# Support : @Coders_Grp 
-# ------------------------ #
+    send_style_poster_response(message, "netcr", query, "@Aero_Unity")
 
 @bot.message_handler(commands=['mod'])
 def handle_mod(message):
@@ -3232,14 +3217,7 @@ def handle_mod(message):
     if not query:
         bot.reply_to(message, "⚠️ <b>Usage:</b> /mod\n<b>Example:</b> <code>/mod Jujutsu Kaisen</code>", parse_mode="HTML")
         return
-    send_style_poster_response(message, "mod", query)
-
-# ------------------------ #
-# Don't Remove My Credits
-# Owner: @Mr_Mohammed_29
-# Updates: @Aero_Unity 
-# Support : @Coders_Grp 
-# ------------------------ #
+    send_style_poster_response(message, "mod", query, "@Aero_Unity")
 
 @bot.message_handler(commands=['modm'])
 def handle_modm(message):
@@ -3247,8 +3225,8 @@ def handle_modm(message):
     if not query:
         bot.reply_to(message, "⚠️ <b>Usage:</b> /modm\n<b>Example:</b> <code>/modm Naruto</code>", parse_mode="HTML")
         return
-    send_style_poster_response(message, "modm", query)
-        
+    send_style_poster_response(message, "modm", query, "@Aero_Unity")
+
 # ------------------------ #
 # Don't Remove My Credits
 # Owner: @Mr_Mohammed_29
