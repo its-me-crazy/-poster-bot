@@ -2676,6 +2676,26 @@ def generate_custom_media_card(poster_bytes, portrait_bytes_list, title, genres,
         draw.text((198, 562), "+ My List", fill=(255, 255, 255), font=get_font(14, bold=True))
         draw.text((1180, 640), f"★ {rating_val}", fill=(255, 215, 0), font=get_font(18, bold=True))
 
+        # Embedded Episode Preview Card with second portrait image thumbnail matching the reference image layout
+        card_x, card_y = 580, 430
+        draw.rounded_rectangle([card_x, card_y, card_x + 310, card_y + 95], radius=12, fill=(25, 25, 30, 220))
+        draw.text((595, card_y + 15), f"Episode - {extra_meta.get('ep_num', '12')}", fill=(255, 255, 255), font=get_font(15, bold=True))
+        draw.text((595, card_y + 38), f"Season - {rel_year}", fill=(190, 190, 190), font=get_font(10, bold=False))
+        draw.text((595, card_y + 56), "Duration - 24m", fill=(190, 190, 190), font=get_font(10, bold=False))
+
+        try:
+            if portrait_bytes_list and len(portrait_bytes_list) >= 2:
+                raw_p = Image.open(io.BytesIO(portrait_bytes_list[1])).convert("RGBA")
+            elif portrait_bytes_list:
+                raw_p = Image.open(io.BytesIO(portrait_bytes_list[0])).convert("RGBA")
+            else:
+                raw_p = raw_art
+            p_crop = ImageOps.fit(raw_p, (100, 70), method=Image.Resampling.LANCZOS)
+            canvas.paste(p_crop, (card_x + 185, card_y + 12))
+        except Exception:
+            pass
+
+
     elif s_upper == "NETM":
         canvas = base_backdrop.copy()
         vignette = Image.new("RGBA", (target_w, target_h), (0, 0, 0, 0))
@@ -2708,6 +2728,25 @@ def generate_custom_media_card(poster_bytes, portrait_bytes_list, title, genres,
         draw.rectangle([60, 550, 170, 590], fill=(220, 20, 60))
         draw.text((85, 562), "▶  Read", fill=(255, 255, 255), font=get_font(14, bold=True))
         draw.text((1180, 640), f"★ {rating_val}", fill=(255, 215, 0), font=get_font(18, bold=True))
+
+        # Embedded Manga Chapter Preview Card with second portrait image thumbnail matching the reference style layout
+        card_x, card_y = 580, 430
+        draw.rounded_rectangle([card_x, card_y, card_x + 310, card_y + 95], radius=12, fill=(25, 25, 30, 220))
+        draw.text((595, card_y + 15), f"Chapter - {extra_meta.get('chapter_num', '1')}", fill=(255, 255, 255), font=get_font(15, bold=True))
+        draw.text((595, card_y + 38), f"Release - {rel_year}", fill=(190, 190, 190), font=get_font(10, bold=False))
+        draw.text((595, card_y + 56), f"Pages - {extra_meta.get('pages', '20p')}", fill=(190, 190, 190), font=get_font(10, bold=False))
+
+        try:
+            if portrait_bytes_list and len(portrait_bytes_list) >= 2:
+                raw_p = Image.open(io.BytesIO(portrait_bytes_list[1])).convert("RGBA")
+            elif portrait_bytes_list:
+                raw_p = Image.open(io.BytesIO(portrait_bytes_list[0])).convert("RGBA")
+            else:
+                raw_p = raw_art
+            p_crop = ImageOps.fit(raw_p, (100, 70), method=Image.Resampling.LANCZOS)
+            canvas.paste(p_crop, (card_x + 185, card_y + 12))
+        except Exception:
+            pass
 
     elif s_upper == "CRUN":
         canvas = base_backdrop.copy()
@@ -2743,6 +2782,19 @@ def generate_custom_media_card(poster_bytes, portrait_bytes_list, title, genres,
         for line in lines[:4]:
             draw.text((60, sy), line, fill=(220, 220, 220), font=get_font(14, bold=False))
             sy += 22
+
+        # Displaying two image thumbnails side-by-side at the bottom below synopsis
+        try:
+            if len(portrait_bytes_list) >= 2:
+                thumb1 = ImageOps.fit(Image.open(io.BytesIO(portrait_bytes_list[0])).convert("RGBA"), (135, 85), method=Image.Resampling.LANCZOS)
+                thumb2 = ImageOps.fit(Image.open(io.BytesIO(portrait_bytes_list[1])).convert("RGBA"), (135, 85), method=Image.Resampling.LANCZOS)
+                canvas.paste(thumb1, (60, sy + 15))
+                canvas.paste(thumb2, (205, sy + 15))
+            elif portrait_bytes_list:
+                thumb1 = ImageOps.fit(Image.open(io.BytesIO(portrait_bytes_list[0])).convert("RGBA"), (135, 85), method=Image.Resampling.LANCZOS)
+                canvas.paste(thumb1, (60, sy + 15))
+        except Exception:
+            pass
 
     elif s_upper == "LIGHT":
         canvas = Image.new("RGBA", (target_w, target_h), (255, 255, 255, 255))
