@@ -2824,7 +2824,6 @@ def generate_custom_media_card(poster_bytes, portrait_bytes_list, title, genres,
             draw.text((60, sy), line, fill=(220, 220, 220), font=get_font(14, bold=False))
             sy += 22
 
-        # Displaying two image thumbnails side-by-side at the bottom below synopsis
         try:
             if len(portrait_bytes_list) >= 2:
                 thumb1 = ImageOps.fit(Image.open(io.BytesIO(portrait_bytes_list[0])).convert("RGBA"), (135, 85), method=Image.Resampling.LANCZOS)
@@ -2839,30 +2838,50 @@ def generate_custom_media_card(poster_bytes, portrait_bytes_list, title, genres,
 
     elif s_upper == "LIGHT":
         canvas = Image.new("RGBA", (target_w, target_h), (255, 255, 255, 255))
-        art_left = ImageOps.fit(raw_art, (640, target_h), method=Image.Resampling.LANCZOS)
-        canvas.paste(art_left, (0, 0))
+        
+        try:
+            if len(portrait_bytes_list) >= 2:
+                p1 = ImageOps.fit(Image.open(io.BytesIO(portrait_bytes_list[0])).convert("RGBA"), (300, 300), method=Image.Resampling.LANCZOS)
+                p2 = ImageOps.fit(Image.open(io.BytesIO(portrait_bytes_list[1])).convert("RGBA"), (220, 220), method=Image.Resampling.LANCZOS)
+                canvas.paste(p1, (40, 220), p1)
+                canvas.paste(p2, (260, 150), p2)
+            elif portrait_bytes_list:
+                art_left = ImageOps.fit(raw_art, (640, target_h), method=Image.Resampling.LANCZOS)
+                canvas.paste(art_left, (0, 0))
+            else:
+                art_left = ImageOps.fit(raw_art, (640, target_h), method=Image.Resampling.LANCZOS)
+                canvas.paste(art_left, (0, 0))
+        except Exception:
+            art_left = ImageOps.fit(raw_art, (640, target_h), method=Image.Resampling.LANCZOS)
+            canvas.paste(art_left, (0, 0))
+
         grad_left = Image.new("RGBA", (640, 200), (0, 0, 0, 0))
         g_draw_l = ImageDraw.Draw(grad_left)
         for y in range(200):
             g_draw_l.line([(0, y), (640, y)], fill=(0, 0, 0, int(180 * (y / 200))))
         canvas.alpha_composite(grad_left, (0, 520))
+        
         draw = ImageDraw.Draw(canvas)
         draw.text((680, 30), "AERO UNITY", fill=(0, 0, 0), font=get_font(22, bold=True))
         draw.text((835, 30), "[ANIME]", fill=(80, 80, 80), font=get_font(22, bold=False))
         draw.text((680, 110), title.upper()[:22], fill=(10, 10, 10), font=get_font(48, bold=True))
         draw.line([(680, 180), (1220, 180)], fill=(180, 180, 180), width=2)
+        
         words = synopsis.split()
         lines, curr = [], ""
         for w in words:
             if len(curr + " " + w) < 52: curr += " " + w
             else: lines.append(curr.strip()); curr = w
         if curr: lines.append(curr.strip())
+        
         sy = 205
         for line in lines[:5]:
             draw.text((680, sy), line, fill=(50, 50, 50), font=get_font(14, bold=False))
             sy += 22
+            
         draw.rounded_rectangle([680, 340, 830, 385], radius=22, fill=(20, 20, 20))
         draw.text((708, 353), "WATCH NOW", fill=(255, 255, 255), font=get_font(12, bold=True))
+
 
     elif s_upper == "LIGHTM":
         canvas = Image.new("RGBA", (target_w, target_h), (245, 245, 250, 255))
@@ -3373,6 +3392,26 @@ def send_style_poster_response(message, cmd, query, branding_name):
             branding=branding_name,
             style_type=cmd,
             extra_meta=extra_metadata
+        )
+                
+        markup = InlineKeyboardMarkup()
+        prev_idx = (current_index - 1) % total_pages
+        next_idx = (current_index + 1) % total_pages
+
+        markup.row(
+            InlineKeyboardButton(text="• ᴘʀᴇᴠ •", callback_data=f"media_card_{search_id}_{prev_idx}"),
+            InlineKeyboardButton(text=f"{current_index+1:02d}/{total_pages:02d}", callback_data="noop"),
+            InlineKeyboardButton(text="• ɴᴇxᴛ •", callback_data=f"media_card_{search_id}_{next_idx}")
+        )
+        markup.row(InlineKeyboardButton(text="• ᴄʟᴏsᴇ •", callback_data="cancel_session"))
+
+        card_io.seek(0)
+        bot.send_photo(
+            chat_id=message.chat.id,
+            photo=card_io,
+            caption=caption_text,
+            parse_mode="HTML",
+            reply_markup=markup
         )
 
         cache_key = f"{item_id}_{cmd}"
