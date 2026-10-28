@@ -2400,21 +2400,22 @@ def detect_media_type_and_studio(item, session, tmdb_api_key):
 # Support : @Coders_Grp 
 # ------------------------ #
 
-def generate_custom_media_card(poster_bytes, portrait_bytes_list, title, genres, synopsis, rating_val="8.4", logo_url=None, branding="ANILIST ANIME", extra_meta=None):
+def generate_custom_media_card(poster_bytes, portrait_bytes_list, title, genres, synopsis, rating_val="8.4", logo_url=None, branding="ANILIST ANIME", style_type="ani", extra_meta=None):
     target_w, target_h = 1280, 720
     b_upper = branding.upper()
+    s_upper = (style_type or "").upper()
     extra_meta = extra_meta or {}
 
     studio_name = extra_meta.get("studio", "N/A").upper()
     status_str = extra_meta.get("status", "N/A").upper()
-    media_format = extra_meta.get("media_format", "ANIME").upper()
+    media_format = extra_meta.get("media_format", "ANIME").upper() # ANIME, MANGA, MANHWA, MANHUA, etc.
     vote_average = extra_meta.get("vote_average", 8.4)
     
     try:
         match_pct = int(float(vote_average) * 10)
     except Exception:
         match_pct = 84
-
+        
 # ------------------------ #
 # Don't Remove My Credits
 # Owner: @Mr_Mohammed_29
@@ -2447,9 +2448,9 @@ def generate_custom_media_card(poster_bytes, portrait_bytes_list, title, genres,
 # Updates: @Aero_Unity 
 # Support : @Coders_Grp 
 # ------------------------ #
-
-    if "ANILIST" in b_upper:
-        bg_color = (21, 31, 46, 255) if "ANIME" in b_upper else (15, 23, 36, 255)
+    
+    if s_upper in ["ANI", "ANIM"] or "ANILIST" in b_upper:
+        bg_color = (21, 31, 46, 255) if s_upper == "ANI" and "MANGA" not in b_upper else (15, 23, 36, 255)
         canvas = Image.new("RGBA", (target_w, target_h), bg_color)
         banner_aspect = raw_art.width / raw_art.height
         new_h = 380
@@ -2492,7 +2493,7 @@ def generate_custom_media_card(poster_bytes, portrait_bytes_list, title, genres,
         for g in genres[:4]:
             pill_txt = str(g).upper()
             pw = max(70, len(pill_txt) * 8 + 16)
-            draw.rounded_rectangle([gx, gy, gx + pw, gy + 24], radius=4, fill=(61, 180, 242) if "ANIME" in b_upper else (0, 200, 255))
+            draw.rounded_rectangle([gx, gy, gx + pw, gy + 24], radius=4, fill=(61, 180, 242) if s_upper == "ANI" else (0, 200, 255))
             draw.text((gx + 8, gy + 4), pill_txt, fill=(255, 255, 255), font=font_pill)
             gx += pw + 10
 
@@ -2515,15 +2516,15 @@ def generate_custom_media_card(poster_bytes, portrait_bytes_list, title, genres,
         draw.text((145, 560), "Add to List", fill=(255, 255, 255), font=get_font(14, bold=True))
         draw.rectangle([0, 680, target_w, 720], fill=(11, 22, 34))
         draw.text((30, 688), "ANILIST", fill=(255, 255, 255), font=get_font(22, bold=True))
-    
+  
 # ------------------------ #
 # Don't Remove My Credits
 # Owner: @Mr_Mohammed_29
 # Updates: @Aero_Unity 
 # Support : @Coders_Grp 
 # ------------------------ #
-
-    elif "NETFLIX" in b_upper or "NETCR" in b_upper:
+    
+    elif s_upper in ["NET", "NETM", "NETCR"] or "NETFLIX" in b_upper or "NETCR" in b_upper:
         canvas = base_backdrop.copy()
         vignette = Image.new("RGBA", (target_w, target_h), (0, 0, 0, 0))
         v_draw = ImageDraw.Draw(vignette)
@@ -2541,7 +2542,7 @@ def generate_custom_media_card(poster_bytes, portrait_bytes_list, title, genres,
         draw.text((60, 40), "N", fill=(229, 9, 20), font=get_font(48, bold=True))
         draw.text((60, 340), title.upper()[:25], fill=(255, 255, 255), font=get_font(48, bold=True))
         rel_year = extra_meta.get("year", "2024") if extra_meta else "2024"
-        is_manga_style = "MANGA" in b_upper or "NETM" in b_upper
+        is_manga_style = s_upper == "NETM" or "MANGA" in b_upper or "NETM" in b_upper
         count_label = f"{extra_meta.get('chapters', '120+')} Chapters" if is_manga_style else f"{extra_meta.get('episodes', '12')} Episodes"
         meta_str = f"{match_pct}% Match    {rel_year}    TV-14    {count_label}    HD"
         draw.text((60, 415), meta_str, fill=(70, 211, 105), font=get_font(14, bold=True))
@@ -2560,6 +2561,7 @@ def generate_custom_media_card(poster_bytes, portrait_bytes_list, title, genres,
             draw.text((60, sy), line, fill=(200, 200, 200), font=get_font(13, bold=False))
             sy += 18
 
+        # Buttons (Play / Read & My List)
         btn_label = "▶  Read" if is_manga_style else "▶  Play"
         draw.rectangle([60, 550, 170, 590], fill=(255, 255, 255))
         draw.text((85, 562), btn_label, fill=(0, 0, 0), font=get_font(14, bold=True))
@@ -2567,16 +2569,17 @@ def generate_custom_media_card(poster_bytes, portrait_bytes_list, title, genres,
         draw.rectangle([180, 550, 300, 590], outline=(150, 150, 150), width=1)
         draw.text((198, 562), "+ My List", fill=(255, 255, 255), font=get_font(14, bold=True))
         
+        # Star Rating on Bottom Right
         draw.text((1180, 640), f"★ {rating_val}", fill=(255, 215, 0), font=get_font(18, bold=True))
-    
+
 # ------------------------ #
 # Don't Remove My Credits
 # Owner: @Mr_Mohammed_29
 # Updates: @Aero_Unity 
 # Support : @Coders_Grp 
 # ------------------------ #
-
-    elif "CRUNCHYROLL" in b_upper:
+    
+    elif s_upper == "CRUN" or "CRUNCHYROLL" in b_upper:
         canvas = base_backdrop.copy()
         top_bar = Image.new("RGBA", (target_w, 60), (18, 18, 18, 230))
         canvas.paste(top_bar, (0, 0), top_bar)
@@ -2615,15 +2618,15 @@ def generate_custom_media_card(poster_bytes, portrait_bytes_list, title, genres,
         for line in lines[:4]:
             draw.text((60, sy), line, fill=(220, 220, 220), font=get_font(14, bold=False))
             sy += 22
-    
+
 # ------------------------ #
 # Don't Remove My Credits
 # Owner: @Mr_Mohammed_29
 # Updates: @Aero_Unity 
 # Support : @Coders_Grp 
 # ------------------------ #
-
-    elif ("AERO" in b_upper or "LIGHT" in b_upper) and "MOD" not in b_upper:
+    
+    elif s_upper in ["LIGHT", "LIGHTM"] or (("AERO" in b_upper or "LIGHT" in b_upper) and "MOD" not in b_upper):
         canvas = Image.new("RGBA", (target_w, target_h), (255, 255, 255, 255))
         art_left = ImageOps.fit(raw_art, (640, target_h), method=Image.Resampling.LANCZOS)
         canvas.paste(art_left, (0, 0))
@@ -2636,7 +2639,7 @@ def generate_custom_media_card(poster_bytes, portrait_bytes_list, title, genres,
 
         draw = ImageDraw.Draw(canvas)
 
-        is_manga = "MANGA" in b_upper or "LIGHTM" in b_upper or "MANHWA" in media_format
+        is_manga = s_upper == "LIGHTM" or "MANGA" in b_upper or "LIGHTM" in b_upper or "MANHWA" in media_format
         main_type = "AERO"
         sub_type = f"STUDIO: {studio_name}"
         
@@ -2689,7 +2692,8 @@ def generate_custom_media_card(poster_bytes, portrait_bytes_list, title, genres,
 # Support : @Coders_Grp 
 # ------------------------ #
 
-    elif "MOD" in b_upper:
+    elif s_upper in ["MOD", "MODM"] or "MOD" in b_upper:
+        
         canvas = base_backdrop.copy()
         overlay = Image.new("RGBA", (target_w, target_h), (10, 10, 15, 200))
         canvas.alpha_composite(overlay)
@@ -2724,6 +2728,7 @@ def generate_custom_media_card(poster_bytes, portrait_bytes_list, title, genres,
         draw.polygon(star_points, fill=(180, 180, 180))
         draw.text((sidebar_x + 6, sidebar_y + 352), "FAVORITES", fill=(180, 180, 180), font=get_font(9, bold=True))
 
+        # 2. Top Header Pill & Genre Pills
         draw.rounded_rectangle([125, 20, 280, 55], radius=18, fill=(15, 15, 22, 230))
         draw.text((138, 28), "☰", fill=(255, 255, 255), font=get_font(16, bold=True))
         draw.text((165, 30), "AERO UNITY", fill=(0, 210, 255), font=get_font(14, bold=True))
@@ -2764,7 +2769,7 @@ def generate_custom_media_card(poster_bytes, portrait_bytes_list, title, genres,
         draw.text((140, box_y + 26), status_str.capitalize(), fill=(10, 10, 15), font=get_font(13, bold=True))
 
         rel_year = extra_meta.get("year", "2026") if extra_meta else "2026"
-        arc_label = f"Fall {rel_year}" if "MODM" not in b_upper else "Release"
+        arc_label = f"Fall {rel_year}" if s_upper != "MODM" and "MODM" not in b_upper else "Release"
         draw.rounded_rectangle([280, box_y, 420, box_y + 55], radius=14, fill=(255, 255, 255))
         draw.text((295, box_y + 10), "Arc", fill=(80, 80, 80), font=get_font(10, bold=False))
         draw.text((295, box_y + 26), arc_label, fill=(10, 10, 15), font=get_font(13, bold=True))
@@ -2792,16 +2797,16 @@ def generate_custom_media_card(poster_bytes, portrait_bytes_list, title, genres,
         for line in lines[:10]:
             draw.text((card_x + 15, sy), line, fill=(200, 200, 200), font=get_font(11, bold=False))
             sy += 18
-    
+
 # ------------------------ #
 # Don't Remove My Credits
 # Owner: @Mr_Mohammed_29
 # Updates: @Aero_Unity 
 # Support : @Coders_Grp 
 # ------------------------ #
-
-    elif "WEBTOON" in b_upper or "DARK" in b_upper:
-        is_darkm = "MANGA" in b_upper or "DARKM" in b_upper
+    
+    elif s_upper in ["DARK", "DARKM"] or "WEBTOON" in b_upper or "DARK" in b_upper:
+        is_darkm = s_upper == "DARKM" or "MANGA" in b_upper or "DARKM" in b_upper
         bg_color = (35, 10, 25, 255) if is_darkm else (55, 10, 35, 255)
         
         canvas = Image.new("RGBA", (target_w, target_h), bg_color)
@@ -2840,14 +2845,14 @@ def generate_custom_media_card(poster_bytes, portrait_bytes_list, title, genres,
         btn_label = "READ NOW" if is_darkm else "WATCH NOW"
         draw.rounded_rectangle([210, 530, 450, 580], radius=25, fill=(255, 255, 255))
         draw.text((275 if is_darkm else 265, 548), btn_label, fill=(55, 10, 35), font=get_font(14, bold=True))
-    
+
 # ------------------------ #
 # Don't Remove My Credits
 # Owner: @Mr_Mohammed_29
 # Updates: @Aero_Unity 
 # Support : @Coders_Grp 
 # ------------------------ #
-
+    
     else:
         canvas = base_backdrop.copy()
         overlay = Image.new("RGBA", (target_w, target_h), (0, 0, 0, 160))
@@ -2882,7 +2887,7 @@ def generate_custom_media_card(poster_bytes, portrait_bytes_list, title, genres,
         words = synopsis.split()
         lines, curr = [], ""
         for w in words:
-            if len(curr + " " + w) < 35: curr += " " + w
+            if len(curr + " " +W if False else curr + " " + w) < 35: curr += " " + w
             else: lines.append(curr.strip()); curr = w
         if curr: lines.append(curr.strip())
 
@@ -2891,8 +2896,7 @@ def generate_custom_media_card(poster_bytes, portrait_bytes_list, title, genres,
             draw.text((850, sy), line, fill=(200, 200, 200), font=get_font(12, bold=False))
             sy += 18
 
-    display_branding = f"By {branding}" if not branding.lower().startswith("by ") else branding
-    draw.text((target_w - 240, target_h - 35), display_branding, fill=(220, 220, 220), font=get_font(14, bold=True))
+    draw.text((target_w - 140, target_h - 30), branding, fill=(200, 200, 200), font=get_font(12, bold=True))
 
     output = io.BytesIO()
     canvas.convert("RGB").save(output, format="JPEG", quality=95)
@@ -2906,7 +2910,7 @@ def generate_custom_media_card(poster_bytes, portrait_bytes_list, title, genres,
 # Support : @Coders_Grp 
 # ------------------------ #
 
-def send_style_poster_response(message, cmd, query, branding_name=None):
+def send_style_poster_response(message, cmd, query, branding_name):
     user_id = message.from_user.id
     
     if message.chat.type == "private" and user_id != OWNER_ID:
@@ -2945,7 +2949,7 @@ def send_style_poster_response(message, cmd, query, branding_name=None):
         parse_mode="HTML"
     )
     
-    time.sleep(1)
+    time.sleep(2)
     
     encoded_query = requests.utils.quote(query)
     search_url = f"https://api.themoviedb.org/3/search/multi?api_key={TMDB_API_KEY}&query={encoded_query}&include_adult=true"
@@ -3027,6 +3031,7 @@ def send_style_poster_response(message, cmd, query, branding_name=None):
             media_format = "PORNHWA"
 
         raw_status = det_res.get("status", "Unknown").lower()
+        
         if "ended" in raw_status or "returned" in raw_status or "released" in raw_status or "completed" in raw_status:
             status_str = "FINISHED"
         elif "returning" in raw_status or "in production" in raw_status or "ongoing" in raw_status or "planned" in raw_status:
@@ -3036,8 +3041,9 @@ def send_style_poster_response(message, cmd, query, branding_name=None):
 
         release_date = item.get("release_date") or item.get("first_air_date") or ""
         year_str = release_date.split("-")[0] if release_date else "2024"
+        
         ep_count = det_res.get("number_of_episodes") or 12
-        chap_str = f"{ep_count * 15}+" if ep_count else "700+"
+        chap_str = f"{ep_count * 15}+" if ep_count else "700+"  # Estimates chapters if it's a long running series/manga format
 
         extra_metadata = {
             "studio": studio_str,
@@ -3073,9 +3079,7 @@ def send_style_poster_response(message, cmd, query, branding_name=None):
             p_bytes_list = [img_bytes, img_bytes]
 
         logo_url = get_tmdb_logo_url(item_id, endpoint)
-        
-        user_branding = database.get_user_branding(user_id) if hasattr(database, "get_user_branding") else (branding_name or "@Aero_Unity")
-        
+
         card_io = generate_custom_media_card(
             poster_bytes=img_bytes,
             portrait_bytes_list=p_bytes_list,
@@ -3084,7 +3088,8 @@ def send_style_poster_response(message, cmd, query, branding_name=None):
             synopsis=synopsis,
             rating_val=round(vote_avg, 1) if vote_avg else "8.4",
             logo_url=logo_url,
-            branding=user_branding,
+            branding=branding_name,
+            style_type=cmd,
             extra_meta=extra_metadata
         )
 
@@ -3123,6 +3128,7 @@ def send_style_poster_response(message, cmd, query, branding_name=None):
         except Exception:
             pass
         bot.reply_to(message, f"⚠️ An error occurred: <code>{html.escape(str(e))}</code>", parse_mode="HTML")
+
 
 # ------------------------ #
 # Don't Remove My Credits
