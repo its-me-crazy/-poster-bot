@@ -1211,32 +1211,38 @@ def handle_airing_command(message):
     if database.is_banned(user_id):
         return
 
-    query = message.text.replace("/airing", "").strip()
-    if not query:
+    raw_query = message.text.replace("/airing", "").strip()
+    if not raw_query:
         bot.reply_to(message, "⚠️ <b>Usage:</b> <code>/airing [Anime Name]</code>\n<i>Example:</i> <code>/airing Black Clover Season 2</code>", parse_mode="HTML")
         return
 
-    status_msg = bot.reply_to(message, f"<b><i>Searching official airing data for <code>{html.escape(query)}</code>...</i></b>", parse_mode="HTML")
+    status_msg = bot.reply_to(message, f"<b><i>Searching official airing data for <code>{html.escape(raw_query)}</code>...</i></b>", parse_mode="HTML")
+
+    import re
+    clean_query = re.sub(r'(?i)\b(?:season|s)\s*\d+\b', '', raw_query).strip()
+    if not clean_query:
+        clean_query = raw_query
 
     try:
         res = session.post(
             "https://graphql.anilist.co", 
-            json={'query': anilist_query, 'variables': {'search': query}}, 
+            json={'query': anilist_query, 'variables': {'search': clean_query}}, 
             timeout=5
         ).json()
         
         media = res.get("data", {}).get("Media")
         if not media:
-            bot.edit_message_text(f"‼️ No official anime found for <b>{html.escape(query)}</b>.", message.chat.id, status_msg.message_id, parse_mode="HTML")
+            bot.edit_message_text(f"‼️ No official anime found for <b>{html.escape(raw_query)}</b>.", message.chat.id, status_msg.message_id, parse_mode="HTML")
             return
 
-        title_romaji = media["title"].get("romaji") or media["title"].get("english") or query
+        title_romaji = media["title"].get("romaji") or media["title"].get("english") or clean_query
         title_native = media["title"].get("native", "")
         next_ep = media.get("nextAiringEpisode")
         status = media.get("status", "UNKNOWN")
         season_num = "1"
 
-        orig_lang = det_res.get("original_language", "ja").lower()
+        # Fixed: Use AniList's countryOfOrigin or defaults safely
+        country = media.get("countryOfOrigin", "JP").lower()
         
         LANG_MAP = {
             # Indian Languages
@@ -1276,21 +1282,23 @@ def handle_airing_command(message):
             "nl": "Dutch [Eng-Sub]",
             
             # Regional variants
+            "jp": "Japanese [Eng-Sub]",
+            "kr": "Korean [Eng-Sub]",
+            "cn": "Chinese [Eng-Sub]",
             "ja-jp": "Japanese [Eng-Sub]",
             "zh-cn": "Chinese (Mandarin) [Eng-Sub]",
             "zh-tw": "Chinese (Traditional) [Eng-Sub]"
         }
         
-        if orig_lang in LANG_MAP:
-            audio_str = LANG_MAP[orig_lang]
+        if country in LANG_MAP:
+            audio_str = LANG_MAP[country]
         else:
-            audio_str = f"{orig_lang.upper()} [Eng-Sub]"
+            audio_str = f"{country.upper()} [Eng-Sub]"
 
-        
         if media.get("season"):
-            season_num = media.get("season").capitalize()
-        import re
-        season_match = re.search(r'(?:season|s)\s*(\d+)', query, re.IGNORECASE)
+            season_num = str(media.get("season")).capitalize()
+            
+        season_match = re.search(r'(?:season|s)\s*(\d+)', raw_query, re.IGNORECASE)
         if season_match:
             season_num = season_match.group(1)
 
@@ -1316,7 +1324,7 @@ def handle_airing_command(message):
             f" <b>›› Title :</b> {title_display}\n"
             f" <b>›› Season :</b> <code>{season_num}</code>\n"
             f" <b>›› Episode :</b> <code>{ep_num}</code>\n"
-            f" <b>›› Audio :</b> Japanese [Eng-Sub]\n"
+            f" <b>›› Audio :</b> {audio_str}\n" # Fixed: Using dynamic audio_str variable
             f" <b>›› Next Air :</b> <b>{airing_status_str}</b>"
         )
 
@@ -1328,6 +1336,7 @@ def handle_airing_command(message):
 
     except Exception as e:
         bot.edit_message_text(f"⚠️ Error fetching from official APIs: <code>{html.escape(str(e))}</code>", message.chat.id, status_msg.message_id, parse_mode="HTML")
+
 
 # ------------------------ #
 # Don't Remove My Credits
