@@ -611,20 +611,24 @@ def handle_all_callbacks(call):
                 pass
             return
 
-        artworks = data["artworks"]
-        posters = data["posters"]
+        artworks = data.get("artworks", [])
+        posters = data.get("posters", [])
+        if not artworks:
+            bot.answer_callback_query(call.id, "No images found.", show_alert=True)
+            return
+
         total_pages = len(artworks)
         current_index = target_index % total_pages
 
         caption_text = (
-            f"<b>{html.escape(data['title'])}</b> ❞\n\n"
+            f"<b>{html.escape(data.get('title', 'Unknown'))}</b> ❞\n\n"
             f"» <b>Type:</b> {data.get('type', 'Manhwa')}\n"
-            f"» <b>Average Rating:</b> {data['rating']}\n"
-            f"» <b>Status:</b> {data['status']}\n"
-            f"» <b>Chapters:</b> {data['chapters']}\n"
-            f"» <b>Genres:</b> {html.escape(data['genres'])}\n\n"
+            f"» <b>Average Rating:</b> {data.get('rating', '8.4')}\n"
+            f"» <b>Status:</b> {data.get('status', 'RELEASING')}\n"
+            f"» <b>Chapters:</b> {data.get('chapters', 'N/A')}\n"
+            f"» <b>Genres:</b> {html.escape(data.get('genres', 'N/A'))}\n\n"
             f" <u><b>SYNOPSIS</b></u>\n"
-            f"<b>➔</b> <i>{html.escape(data['synopsis'][:400])}...</i> ❞"
+            f"<b>➔</b> <i>{html.escape(data.get('synopsis', 'No synopsis')[:400])}...</i> ❞"
         )
 
         markup = InlineKeyboardMarkup()
@@ -649,8 +653,8 @@ def handle_all_callbacks(call):
                 )
                 bot.answer_callback_query(call.id)
                 return
-            except Exception as e:
-                print(f"Fast edit cache error: {e}")
+            except Exception:
+                pass
                 
         try:
             img_bytes = session.get(artworks[current_index], timeout=4).content
@@ -661,24 +665,36 @@ def handle_all_callbacks(call):
                 except Exception:
                     p_bytes_list.append(img_bytes)
 
-            genres_list = [g.strip() for g in data["genres"].split(",")]
+            genres_list = [g.strip() for g in data.get("genres", "Action").split(",")]
             
             raw_rating = data.get("rating", "8.4")
             if "%" in str(raw_rating):
                 try:
-                    raw_rating = round(float(raw_rating.replace("%", "")) / 10.0, 1)
+                    raw_rating = round(float(str(raw_rating).replace("%", "")) / 10.0, 1)
                 except ValueError:
-                    raw_rating = "8.4"
+                    raw_rating = 8.4
+            else:
+                try:
+                    raw_rating = float(raw_rating)
+                except ValueError:
+                    raw_rating = 8.4
 
             card_io = generate_custom_media_card(
                 poster_bytes=img_bytes,
                 portrait_bytes_list=p_bytes_list,
-                title=data["title"],
+                title=data.get("title", "Unknown"),
                 genres=genres_list,
-                synopsis=data["synopsis"],
+                synopsis=data.get("synopsis", ""),
                 rating_val=raw_rating,
-                logo_url=data["logo_url"],
-                branding="Manga Aero"
+                logo_url=data.get("logo_url"),
+                branding="Manga Aero",
+                style_type="anim",
+                extra_meta={
+                    "media_format": data.get("type", "MANHWA").upper(),
+                    "status": data.get("status", "RELEASING").upper(),
+                    "vote_average": raw_rating,
+                    "chapters": data.get("chapters", "N/A")
+                }
             )
 
             edited_msg = bot.edit_message_media(
@@ -2190,6 +2206,7 @@ def movie_poster_handler(message):
 # Updates: @Aero_Unity 
 # Support : @Coders_Grp 
 # ------------------------ #
+
 @bot.message_handler(commands=['manga'])
 def manga_command_handler(message):
     user_id = message.from_user.id
@@ -2244,24 +2261,27 @@ def manga_command_handler(message):
             json={'query': ANILIST_MANGA_QUERY, 'variables': {'search': query}},
             timeout=8
         )
-        data = response.json()
-        media = data.get("data", {}).get("Media")
+        res_json = response.json()
+        media = res_json.get("data", {}).get("Media")
 
         if not media:
-            bot.reply_to(message, f"‼️ No manga/manhwa/pornhwa results found for <b>{html.escape(query)}</b>", parse_mode="HTML")
             try:
                 bot.delete_message(message.chat.id, status_msg.message_id)
             except Exception:
                 pass
+            bot.reply_to(message, f"‼️ No manga/manhwa/pornhwa results found for <b>{html.escape(query)}</b>", parse_mode="HTML")
             return
 
-        title = media.get("title", {}).get("english") or media.get("title", {}).get("romaji") or query
-        genres_list = media.get("genres", ["Romance", "Drama"])
-        synopsis = media.get("description", "No synopsis available.")
+        # Safe extractions with fallbacks for None values
+        title_dict = media.get("title") or {}
+        title = title_dict.get("english") or title_dict.get("romaji") or title_dict.get("native") or query
+        
+        genres_list = media.get("genres") or ["Romance", "Drama"]
+        synopsis = media.get("description") or "No synopsis available."
         if synopsis:
             synopsis = synopsis.replace("<br>", "\n").replace("<i>", "").replace("</i>", "").replace("<b>", "").replace("</b>", "")
 
-        country = media.get("countryOfOrigin", "JP")
+        country = media.get("countryOfOrigin") or "JP"
         is_adult = media.get("isAdult", False)
 
         if is_adult and country == "KR":
@@ -2277,23 +2297,29 @@ def manga_command_handler(message):
         rating_pct = f"{score}%" if score else "88%"
         vote_avg = round(score / 10.0, 1) if score else 8.4
         
-        status_str = media.get("status", "RELEASING").replace("_", " ").title()
+        status_raw = media.get("status") or "RELEASING"
+        status_str = status_raw.replace("_", " ").title()
         ch_count = media.get("chapters")
         chapters_str = f"{ch_count}+(CH)" if ch_count else "318+(CH)"
 
-        cover_url = media.get("coverImage", {}).get("extraLarge") or media.get("coverImage", {}).get("large")
+        cover_img_dict = media.get("coverImage") or {}
+        cover_url = cover_img_dict.get("extraLarge") or cover_img_dict.get("large")
         banner_url = media.get("bannerImage") or cover_url
 
         artworks = []
         if banner_url:
             artworks.append(banner_url)
-        if cover_url:
+        if cover_url and cover_url not in artworks:
             artworks.append(cover_url)
 
-        for char in media.get("characters", {}).get("nodes", []):
-            char_img = char.get("image", {}).get("large")
-            if char_img and char_img not in artworks:
-                artworks.append(char_img)
+        chars = media.get("characters") or {}
+        nodes = chars.get("nodes") or []
+        for char in nodes:
+            if char and isinstance(char, dict):
+                img_dict = char.get("image") or {}
+                char_img = img_dict.get("large")
+                if char_img and char_img not in artworks:
+                    artworks.append(char_img)
 
         if not artworks:
             artworks = ["https://graph.org/file/faf795187aa693e1024a4-746b376c8dcc889d4f.jpg"]
@@ -2304,7 +2330,7 @@ def manga_command_handler(message):
         SEARCH_CACHE[search_id] = {
             "title": title,
             "type": detected_type,
-            "genres": ", ".join(genres_list),
+            "genres": ", ".join(genres_list) if genres_list else "Action",
             "rating": rating_pct,
             "status": status_str,
             "chapters": chapters_str,
@@ -2348,6 +2374,7 @@ def manga_command_handler(message):
             rating_val=vote_avg,
             logo_url=None,
             branding=user_branding,
+            style_type="anim",
             extra_meta={
                 "media_format": detected_type.upper(),
                 "status": status_str.upper(),
