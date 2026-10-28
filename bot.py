@@ -1323,26 +1323,27 @@ def handle_airing_command(message):
                 hours, rem = divmod(rem, 3600)
                 mins, _ = divmod(rem, 60)
 
-                time_str = f"{days}d {hours}h {mins}m"
+                time_str = f"{days}d {hours}h {mins}m" if days > 0 else f"{hours}h {mins}m"
                 airing_status_str = f"Episode {ep_num} ᴀɪʀs ɪɴ {time_str}"
+                ep_display = ep_num
             else:
                 ep_num = str(next_ep.get("episode_number", "N/A"))
                 air_date = next_ep.get("air_date", "TBA")
                 airing_status_str = f"Episode {ep_num} Airs on {air_date}"
+                ep_display = ep_num
         else:
-            # Fixed condition to catch active/releasing states across both AniList and TMDB status variations
             if status.upper() in ["RETURNING", "ONGOING", "RETUNING SERIES", "RELEASING", "CURRENT"]:
-                ep_num = "Ongoing / Next TBA"
+                ep_display = "Ongoing"
                 airing_status_str = "NEW EPISODES ONGOING"
             else:
-                ep_num = "N/A (Completed)"
+                ep_display = "N/A (Completed)"
                 airing_status_str = "FINISHED AIRING"
 
 
         airing_text = (
             f" <b>›› Title :</b> {title_display}\n"
             f" <b>›› Season :</b> <code>{season_num}</code>\n"
-            f" <b>›› Episode :</b> <code>{ep_num}</code>\n"
+            f" <b>›› Episode :</b> <code>{ep_display}</code>\n"
             f" <b>›› Audio :</b> {audio_str}\n"
             f" <b>›› Next Air :</b> <b>{airing_status_str}</b>"
         )
