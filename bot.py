@@ -2504,7 +2504,6 @@ def generate_custom_media_card(poster_bytes, portrait_bytes_list, title, genres,
 # Updates: @Aero_Unity 
 # Support : @Coders_Grp 
 # ------------------------ #
-    
     if s_upper == "ANI":
         bg_color = (21, 31, 46, 255)
         canvas = Image.new("RGBA", (target_w, target_h), bg_color)
@@ -2532,10 +2531,17 @@ def generate_custom_media_card(poster_bytes, portrait_bytes_list, title, genres,
 
         draw = ImageDraw.Draw(canvas)
 
+        # Added side-by-side multiple image previews
         try:
-            raw_p = Image.open(io.BytesIO(portrait_bytes_list[0])).convert("RGBA") if portrait_bytes_list else raw_art
-            p_img = ImageOps.fit(raw_p, (210, 310), method=Image.Resampling.LANCZOS)
-            canvas.paste(p_img, (120, 220))
+            if len(portrait_bytes_list) >= 2:
+                p1 = ImageOps.fit(Image.open(io.BytesIO(portrait_bytes_list[0])).convert("RGBA"), (100, 310), method=Image.Resampling.LANCZOS)
+                p2 = ImageOps.fit(Image.open(io.BytesIO(portrait_bytes_list[1])).convert("RGBA"), (100, 310), method=Image.Resampling.LANCZOS)
+                canvas.paste(p1, (120, 220))
+                canvas.paste(p2, (225, 220))
+            elif portrait_bytes_list:
+                raw_p = Image.open(io.BytesIO(portrait_bytes_list[0])).convert("RGBA")
+                p_img = ImageOps.fit(raw_p, (210, 310), method=Image.Resampling.LANCZOS)
+                canvas.paste(p_img, (120, 220))
         except Exception:
             pass
 
@@ -2572,7 +2578,7 @@ def generate_custom_media_card(poster_bytes, portrait_bytes_list, title, genres,
         draw.text((145, 560), "Add to List", fill=(255, 255, 255), font=get_font(14, bold=True))
         draw.rectangle([0, 680, target_w, 720], fill=(11, 22, 34))
         draw.text((30, 688), "ANILIST", fill=(255, 255, 255), font=get_font(22, bold=True))
-
+    
     elif s_upper == "ANIM":
         bg_color = (15, 23, 36, 255)
         canvas = Image.new("RGBA", (target_w, target_h), bg_color)
