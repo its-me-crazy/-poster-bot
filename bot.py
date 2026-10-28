@@ -180,39 +180,6 @@ POSTER_GROUP_URL = os.environ.get("POSTER_GROUP_URL", "https://t.me/+VXY_za8DNjQ
 
 ANILIST_API_URL = "https://graphql.anilist.co"
 
-ANILIST_MANGA_QUERY = """
-query ($search: String) {
-  Media (search: $search, type: MANGA) {
-    id
-    title {
-      romaji
-      english
-      native
-    }
-    format
-    countryOfOrigin
-    isAdult
-    chapters
-    genres
-    description(asHtml: false)
-    averageScore
-    status
-    coverImage {
-      extraLarge
-      large
-    }
-    bannerImage
-    characters(perPage: 5, sort: [ROLE, FAVOURITES_DESC]) {
-      nodes {
-        image {
-          large
-        }
-      }
-    }
-  }
-}
-"""
-
 bot = telebot.TeleBot(BOT_TOKEN)
 app = Flask(__name__)
 
@@ -1223,8 +1190,31 @@ def handle_airing_command(message):
     if not clean_query:
         clean_query = raw_query
 
+    anilist_query = """
+    query ($search: String) {
+      Media (search: $search, type: ANIME) {
+        id
+        title {
+          romaji
+          english
+          native
+        }
+        status
+        season
+        seasonYear
+        format
+        countryOfOrigin
+        nextAiringEpisode {
+          airingAt
+          timeUntilAiring
+          episode
+        }
+      }
+    }
+    """
+
     try:
-        # Added TMDB fallback fetch alongside AniList to fulfill multi-API source requirement
+        # TMDB fallback fetch alongside AniList
         encoded_query = requests.utils.quote(clean_query)
         tmdb_url = f"https://api.themoviedb.org/3/search/tv?api_key={TMDB_API_KEY}&query={encoded_query}&include_adult=true"
         tmdb_res = session.get(tmdb_url, timeout=5).json()
@@ -1347,7 +1337,7 @@ def handle_airing_command(message):
             f" <b>›› Title :</b> {title_display}\n"
             f" <b>›› Season :</b> <code>{season_num}</code>\n"
             f" <b>›› Episode :</b> <code>{ep_num}</code>\n"
-            f" <b>›› Audio :</b> {audio_str}\n" # Fixed: Using dynamic audio_str variable
+            f" <b>›› Audio :</b> {audio_str}\n"
             f" <b>›› Next Air :</b> <b>{airing_status_str}</b>"
         )
 
@@ -1359,6 +1349,8 @@ def handle_airing_command(message):
 
     except Exception as e:
         bot.edit_message_text(f"⚠️ Error fetching from official APIs: <code>{html.escape(str(e))}</code>", message.chat.id, status_msg.message_id, parse_mode="HTML")
+
+        
 
 
 # ------------------------ #
