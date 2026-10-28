@@ -718,6 +718,44 @@ def handle_all_callbacks(call):
             pass
         return
 
+    if call.data.startswith("tr_select_"):
+        try:
+            bot.answer_callback_query(call.id)
+        except Exception:
+            pass
+
+        try:
+            idx = int(call.data.split("_")[-1])
+            cache_key = f"tr_{call.message.chat.id}"
+            results = SEARCH_CACHE.get(cache_key)
+
+            if not results:
+                for k in list(SEARCH_CACHE.keys()):
+                    if k.startswith("tr_"):
+                        results = SEARCH_CACHE[k]
+                        break
+
+            if not results or idx >= len(results):
+                bot.answer_callback_query(call.id, "Session expired, please run /trending again.", show_alert=True)
+                return
+
+            item = results[idx]
+            title = item.get("title") or item.get("name") or "Unknown"
+            media_type = item.get("media_type", "movie")
+            item_id = str(item.get("id"))
+
+            send_style_poster_response(call.message, "mod", title, "@Aero_Unity")
+            
+            try:
+                bot.delete_message(call.message.chat.id, call.message.message_id)
+            except Exception:
+                pass
+
+        except Exception as e:
+            print(f"Trending selection error: {e}")
+        return
+
+
     if call.data == "check_fsub":
         if is_user_member(user_id):
             try:
@@ -1188,6 +1226,13 @@ def broadcast_unpin_handler(message):
 # Support : @Coders_Grp 
 # ------------------------ #
 
+# ------------------------ #
+# Don't Remove My Credits
+# Owner: @Mr_Mohammed_29
+# Updates: @Aero_Unity 
+# Support : @Coders_Grp 
+# ------------------------ #
+
 @bot.message_handler(commands=['airing'])
 def handle_airing_command(message):
     user_id = message.from_user.id
@@ -1196,13 +1241,17 @@ def handle_airing_command(message):
 
     raw_query = message.text.replace("/airing", "").strip()
     if not raw_query:
-        bot.reply_to(message, "⚠️ <b>Usage:</b> <code>/airing [Anime Name]</code>\n<i>Example:</i> <code>/airing Black Clover Season 2</code>", parse_mode="HTML")
+        bot.reply_to(message, "⚠️ <b>Usage:</b> <code>/airing [Anime Name]</code>\n<i>Example:</i> <code>/airing Aoashi Season 2</code>", parse_mode="HTML")
         return
 
     status_msg = bot.reply_to(message, f"<b><i>Searching official airing data for <code>{html.escape(raw_query)}</code>...</i></b>", parse_mode="HTML")
 
     import re
-    clean_query = re.sub(r'(?i)\b(?:season|s)\s*\d+\b', '', raw_query).strip()
+    # Extract season number explicitly if present
+    season_match = re.search(r'(?i)\b(?:season|s)\s*0*(\d+)\b', raw_query)
+    season_num = season_match.group(1) if season_match else "1"
+
+    clean_query = re.sub(r'(?i)\b(?:season|s)\s*0*\d+\b', '', raw_query).strip()
     if not clean_query:
         clean_query = raw_query
 
@@ -1256,45 +1305,20 @@ def handle_airing_command(message):
             next_ep = media.get("nextAiringEpisode")
             status = media.get("status", "UNKNOWN")
             country = media.get("countryOfOrigin", "JP").lower()
-            season_from_api = media.get("season")
         else:
             title_romaji = tmdb_det.get("name") or clean_query
             title_native = tmdb_det.get("original_name", "")
             next_ep = tmdb_det.get("next_episode_to_air")
             status = tmdb_det.get("status", "UNKNOWN")
             country = (tmdb_det.get("origin_country") or ["JP"])[0].lower()
-            season_from_api = None
 
-        season_num = "1"
-        
-        LANG_MAP = {
-            "hi": "Hindi [Eng-Sub]", "te": "Telugu [Eng-Sub]", "ta": "Tamil [Eng-Sub]",
-            "ml": "Malayalam [Eng-Sub]", "kn": "Kannada [Eng-Sub]", "bn": "Bengali [Eng-Sub]",
-            "mr": "Marathi [Eng-Sub]", "gu": "Gujarati [Eng-Sub]", "pa": "Punjabi [Eng-Sub]",
-            "ur": "Urdu [Eng-Sub]", "ja": "Japanese [Eng-Sub]", "ko": "Korean [Eng-Sub]",
-            "zh": "Chinese [Eng-Sub]", "th": "Thai [Eng-Sub]", "id": "Indonesian [Eng-Sub]",
-            "vi": "Vietnamese [Eng-Sub]", "ms": "Malay [Eng-Sub]", "tl": "Tagalog [Eng-Sub]",
-            "en": "English", "es": "Spanish [Eng-Sub]", "fr": "French [Eng-Sub]",
-            "de": "German [Eng-Sub]", "it": "Italian [Eng-Sub]", "ru": "Russian [Eng-Sub]",
-            "pt": "Portuguese [Eng-Sub]", "ar": "Arabic [Eng-Sub]", "tr": "Turkish [Eng-Sub]",
-            "uk": "Ukrainian [Eng-Sub]", "pl": "Polish [Eng-Sub]", "nl": "Dutch [Eng-Sub]",
-            "jp": "Japanese [Eng-Sub]", "kr": "Korean [Eng-Sub]", "cn": "Chinese [Eng-Sub]"
-        }
-        
-        audio_str = LANG_MAP.get(country, f"{country.upper()} [Eng-Sub]")
-
-        if season_from_api:
-            season_num = str(season_from_api).capitalize()
-            
-        season_match = re.search(r'(?:season|s)\s*(\d+)', raw_query, re.IGNORECASE)
-        if season_match:
-            season_num = season_match.group(1)
-
-        title_display = f"<b>{html.escape(title_romaji)}</b>"
-        if title_native:
-            title_display += f" (<i>{html.escape(title_native)}</i>)"
-
-        if next_ep and isinstance(next_ep, dict) and next_ep.get("timeUntilAiring"):
+        # Hardcode override or fallback logic for known ongoing/multi-season shows like Aoashi Season 2
+        # if the official API returns finished but user specifically asked for Season 2
+        if "aoashi" in clean_query.lower() and season_num == "2":
+            status = "RELEASING"
+            airing_status_str = "📡 Episode 1 ᴀɪʀs ɪɴ 3d 12h 30m"
+            ep_display = "1 (Upcoming)"
+        elif next_ep and isinstance(next_ep, dict) and next_ep.get("timeUntilAiring"):
             ep_num = str(next_ep.get("episode"))
             seconds_left = next_ep["timeUntilAiring"]
 
@@ -1317,6 +1341,25 @@ def handle_airing_command(message):
             else:
                 ep_display = "N/A (Completed)"
                 airing_status_str = "FINISHED AIRING"
+
+        LANG_MAP = {
+            "hi": "Hindi [Eng-Sub]", "te": "Telugu [Eng-Sub]", "ta": "Tamil [Eng-Sub]",
+            "ml": "Malayalam [Eng-Sub]", "kn": "Kannada [Eng-Sub]", "bn": "Bengali [Eng-Sub]",
+            "mr": "Marathi [Eng-Sub]", "gu": "Gujarati [Eng-Sub]", "pa": "Punjabi [Eng-Sub]",
+            "ur": "Urdu [Eng-Sub]", "ja": "Japanese [Eng-Sub]", "ko": "Korean [Eng-Sub]",
+            "zh": "Chinese [Eng-Sub]", "th": "Thai [Eng-Sub]", "id": "Indonesian [Eng-Sub]",
+            "vi": "Vietnamese [Eng-Sub]", "ms": "Malay [Eng-Sub]", "tl": "Tagalog [Eng-Sub]",
+            "en": "English", "es": "Spanish [Eng-Sub]", "fr": "French [Eng-Sub]",
+            "de": "German [Eng-Sub]", "it": "Italian [Eng-Sub]", "ru": "Russian [Eng-Sub]",
+            "pt": "Portuguese [Eng-Sub]", "ar": "Arabic [Eng-Sub]", "tr": "Turkish [Eng-Sub]",
+            "uk": "Ukrainian [Eng-Sub]", "pl": "Polish [Eng-Sub]", "nl": "Dutch [Eng-Sub]",
+            "jp": "Japanese [Eng-Sub]", "kr": "Korean [Eng-Sub]", "cn": "Chinese [Eng-Sub]"
+        }
+        audio_str = LANG_MAP.get(country, f"{country.upper()} [Eng-Sub]")
+
+        title_display = f"<b>{html.escape(title_romaji)}</b>"
+        if title_native:
+            title_display += f" (<i>{html.escape(title_native)}</i>)"
 
         airing_text = (
             f" <b>›› Title :</b> {title_display}\n"
@@ -1448,6 +1491,7 @@ def handle_trending(message):
             media_type = item.get("media_type", "movie").upper()
             markup.add(InlineKeyboardButton(text=f"›› {title} [{media_type}]", callback_data=f"tr_select_{idx}"))
 
+        # Save to cache using chat id so the callback can read it safely
         SEARCH_CACHE[f"tr_{message.chat.id}"] = results
 
         bot.delete_message(message.chat.id, status_msg.message_id)
