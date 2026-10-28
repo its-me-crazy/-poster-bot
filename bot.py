@@ -2590,7 +2590,8 @@ def generate_custom_media_card(poster_bytes, portrait_bytes_list, title, genres,
             
         canvas.alpha_composite(vignette)
         draw = ImageDraw.Draw(canvas)
-        draw.text((60, 40), "N", fill=(229, 9, 20), font=get_font(48, bold=True))
+        draw.rectangle([50, 325, 780, 400], fill=(15, 15, 20, 240))
+        draw.text((60, 340), title.upper()[:25], fill=(255, 255, 255), font=get_font(48, bold=True))
         draw.text((60, 340), title.upper()[:25], fill=(255, 255, 255), font=get_font(48, bold=True))
         rel_year = extra_meta.get("year", "2024") if extra_meta else "2024"
         is_manga_style = s_upper == "NETM" or "MANGA" in b_upper or "NETM" in b_upper
@@ -2646,6 +2647,7 @@ def generate_custom_media_card(poster_bytes, portrait_bytes_list, title, genres,
             g_draw.line([(0, y), (target_w, y)], fill=(0, 0, 0, int(230 * ((y - 250) / 470))))
         canvas.alpha_composite(gradient)
 
+        draw.rectangle([50, 145, 780, 220], fill=(15, 15, 15, 220))
         draw.text((60, 160), title, fill=(255, 255, 255), font=get_font(42, bold=True))
         draw.rounded_rectangle([60, 230, 130, 258], radius=4, fill=(50, 50, 50, 200))
         draw.text((70, 235), f"{status_str}", fill=(200, 200, 200), font=get_font(13, bold=False))
@@ -2779,7 +2781,6 @@ def generate_custom_media_card(poster_bytes, portrait_bytes_list, title, genres,
         draw.polygon(star_points, fill=(180, 180, 180))
         draw.text((sidebar_x + 6, sidebar_y + 352), "FAVORITES", fill=(180, 180, 180), font=get_font(9, bold=True))
 
-        # 2. Top Header Pill & Genre Pills
         draw.rounded_rectangle([125, 20, 280, 55], radius=18, fill=(15, 15, 22, 230))
         draw.text((138, 28), "☰", fill=(255, 255, 255), font=get_font(16, bold=True))
         draw.text((165, 30), "AERO UNITY", fill=(0, 210, 255), font=get_font(14, bold=True))
