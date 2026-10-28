@@ -1218,28 +1218,6 @@ def handle_airing_command(message):
 
     status_msg = bot.reply_to(message, f"<b><i>Searching official airing data for <code>{html.escape(query)}</code>...</i></b>", parse_mode="HTML")
 
-    anilist_query = """
-    query ($search: String) {
-      Media (search: $search, type: ANIME) {
-        id
-        title {
-          romaji
-          english
-          native
-        }
-        status
-        season
-        seasonYear
-        format
-        nextAiringEpisode {
-          airingAt
-          timeUntilAiring
-          episode
-        }
-      }
-    }
-    """
-
     try:
         res = session.post(
             "https://graphql.anilist.co", 
