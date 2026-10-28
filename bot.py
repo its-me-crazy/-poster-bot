@@ -1172,7 +1172,7 @@ def broadcast_unpin_handler(message):
 # Support : @Coders_Grp 
 # ------------------------ #
 
-@bot.message_handler(commands=['airing'])
+   @bot.message_handler(commands=['airing'])
 def handle_airing_command(message):
     user_id = message.from_user.id
     if database.is_banned(user_id):
@@ -1330,8 +1330,8 @@ def handle_airing_command(message):
                 air_date = next_ep.get("air_date", "TBA")
                 airing_status_str = f"Episode {ep_num} Airs on {air_date}"
         else:
-            # If there is no active next airing countdown, check if it's ongoing or returning
-            if status in ["RETURNING", "ONGOING", "Retuning Series", "RELEASING"]:
+            # Fixed condition to catch active/releasing states across both AniList and TMDB status variations
+            if status.upper() in ["RETURNING", "ONGOING", "RETUNING SERIES", "RELEASING", "CURRENT"]:
                 ep_num = "Ongoing / Next TBA"
                 airing_status_str = "NEW EPISODES ONGOING"
             else:
@@ -1355,9 +1355,6 @@ def handle_airing_command(message):
 
     except Exception as e:
         bot.edit_message_text(f"⚠️ Error fetching from official APIs: <code>{html.escape(str(e))}</code>", message.chat.id, status_msg.message_id, parse_mode="HTML")
-
-        
-
 
 # ------------------------ #
 # Don't Remove My Credits
