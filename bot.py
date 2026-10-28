@@ -2229,7 +2229,6 @@ def movie_poster_handler(message):
 # Updates: @Aero_Unity 
 # Support : @Coders_Grp 
 # ------------------------ #
-
 @bot.message_handler(commands=['manga'])
 def manga_command_handler(message):
     user_id = message.from_user.id
@@ -2242,6 +2241,41 @@ def manga_command_handler(message):
         return
 
     status_msg = bot.reply_to(message, "⚙️ <b>ɢᴇɴᴇʀᴀᴛɪɴɢ ᴍᴀɴɢᴀ ᴄᴀʀᴅ, ᴡᴀɪᴛ a sec...</b>", parse_mode="HTML")
+
+    ANILIST_MANGA_QUERY = """
+    query ($search: String) {
+      Media (search: $search, type: MANGA) {
+        id
+        title {
+          romaji
+          english
+          native
+        }
+        status
+        format
+        chapters
+        volumes
+        averageScore
+        countryOfOrigin
+        isAdult
+        genres
+        description
+        siteUrl
+        coverImage {
+          large
+          extraLarge
+        }
+        bannerImage
+        characters(page: 1, perLimit: 5, sort: ROLE) {
+          nodes {
+            image {
+              large
+            }
+          }
+        }
+      }
+    }
+    """
 
     try:
         response = requests.post(
@@ -2303,7 +2337,7 @@ def manga_command_handler(message):
         if not artworks:
             artworks = ["https://graph.org/file/faf795187aa693e1024a4-746b376c8dcc889d4f.jpg"]
 
-        posters = [cover_url, cover_url] if cover_url else artworks[:2]
+        posters = artworks[:3] if len(artworks) >= 3 else [cover_url, cover_url, cover_url] if cover_url else artworks
 
         search_id = str(message.message_id)
         SEARCH_CACHE[search_id] = {
@@ -2356,7 +2390,8 @@ def manga_command_handler(message):
             extra_meta={
                 "media_format": detected_type.upper(),
                 "status": status_str.upper(),
-                "vote_average": vote_avg
+                "vote_average": vote_avg,
+                "chapters": chapters_str
             }
         )
 
