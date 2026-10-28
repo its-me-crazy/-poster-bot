@@ -282,7 +282,7 @@ def send_fsub_prompt(chat_id):
 
     fsub_text = (
         " <b>ᴀᴄᴄᴇss ᴅᴇɴɪᴇᴅ</b>\n\n"
-        "<b>›› ‼️ ʟᴏᴏᴋs ʟɪᴋᴇ ʏᴏᴜ ʜᴀᴠᴇɴ'ᴛ ᴊᴏɪɴᴇᴅ ᴛᴏ ᴏᴜʀ ᴄʜᴀɴɴᴇʟs ʏᴇᴛ, sᴜʙsᴄʀɪʙᴇ ɴᴏw...</b>\n"
+        "<b>›› ‼️ ʟᴏᴏᴋs ʟɪᴋᴇ ʏᴏᴜ ʜᴀᴠᴇɴ'ᴛ ᴊᴏɪɴᴇᴅ ᴛᴏ ᴏᴜʀ ᴄʜᴀɴɴᴇls ʏᴇᴛ, sᴜʙsᴄʀɪʙᴇ ɴᴏw...</b>\n"
         "<b>ᴀғᴛᴇʀ Jᴏɪɴɪɴɢ, ᴄʟɪᴄᴋ <i>ᴄʜᴇᴄᴋ sᴜʙsᴄʀɪᴘᴛɪᴏɴ</i> ᴛᴏ ᴄᴏɴᴛɪɴᴜᴇ.</b>"
     )
     try:
@@ -723,7 +723,7 @@ def handle_all_callbacks(call):
             
             bot.send_photo(call.message.chat.id, START_IMAGE_URL, caption=welcome_text, parse_mode="HTML", reply_markup=markup)
         else:
-            bot.answer_callback_query(call.id, "›› ‼️ ʟᴏᴏᴋs ʟɪᴋᴇ ʏᴏᴜ ʜᴀᴠᴇɴ'ᴛ ᴊᴏɪɴᴇᴅ ᴛᴏ ᴏᴜʀ ᴄʜᴀɴɴᴇʟs", show_alert=True)
+            bot.answer_callback_query(call.id, "›› ‼️ ʟᴏᴏᴋs ʟɪᴋᴇ ʏᴏᴜ ʜᴀᴠᴇɴ'ᴛ ᴊᴏɪɴᴇᴅ ᴛᴏ ᴏᴜʀ ᴄʜᴀɴɴᴇls", show_alert=True)
             
     elif call.data == "btn_about":
         about_text = (
@@ -986,7 +986,7 @@ def add_force_sub(message):
         current_channels = database.get_fsub_channels()
         if channel not in current_channels:
             database.add_fsub_channel(channel)
-            bot.reply_to(message, f"<b>✅ sᴜᴄᴄᴇssꜰᴜʟʟʏ ᴀᴅᴅᴇᴅ <code>{channel}</code> ᴛᴏ ꜰᴏʀᴄᴇ sᴜʙsᴄʀɪᴘᴛɪᴏɴ ʟɪsᴛ.</b>", parse_mode="HTML")
+            bot.reply_to(message, f"<b>✅ sᴜᴄᴄᴇssꜰᴜʟʟʏ ᴀᴅᴅᴇᴅ <code>{channel}</code> ᴛᴏ ꜰᴏʀᴄᴇ sᴜʙsᴄʀɪᴘᴛɪᴏN ʟɪsᴛ.</b>", parse_mode="HTML")
         else:
             bot.reply_to(message, f"‼️ ᴄʜᴀɴɴᴇʟ <code>{channel}</code> ɪs ᴀʟʀᴇᴀᴅʏ ɪɴ ᴛʜᴇ ʟɪsᴛ.", parse_mode="HTML")
     else:
@@ -1010,7 +1010,7 @@ def remove_force_sub(message):
         current_channels = database.get_fsub_channels()
         if channel in current_channels:
             database.remove_fsub_channel(channel)
-            bot.reply_to(message, f"<b>✅️ sᴜᴄᴄᴇssꜰᴜʟʟʏ ʀᴇᴍᴏᴠᴇᴅ <code>{channel}</code> ꜰʀᴏᴍ ꜰᴏʀᴄᴇ sᴜʙsᴄʀɪᴘᴛɪᴏɴ ʟɪsᴛ</b>", parse_mode="HTML")
+            bot.reply_to(message, f"<b>✅️ sᴜᴄᴄᴇssꜰᴜʟʟʏ ʀᴇᴍᴏᴠᴇᴅ <code>{channel}</code> ꜰʀᴏᴍ ꜰᴏʀᴄᴇ sᴜʙsᴄʀɪᴘᴛɪᴏN ʟɪsᴛ</b>", parse_mode="HTML")
         else:
             bot.reply_to(message, f"‼️ ᴄʜᴀɴɴᴇʟ<code>{channel}</code> ɴᴏᴛ ꜰᴏᴜɴᴅ ɪɴ ʟɪsᴛ.", parse_mode="HTML")
     else:
@@ -1214,7 +1214,6 @@ def handle_airing_command(message):
     """
 
     try:
-        
         encoded_query = requests.utils.quote(clean_query)
         tmdb_url = f"https://api.themoviedb.org/3/search/tv?api_key={TMDB_API_KEY}&query={encoded_query}&include_adult=true"
         tmdb_res = session.get(tmdb_url, timeout=5).json()
@@ -1253,55 +1252,20 @@ def handle_airing_command(message):
         season_num = "1"
         
         LANG_MAP = {
-            # Indian Languages
-            "hi": "Hindi [Eng-Sub]",
-            "te": "Telugu [Eng-Sub]",
-            "ta": "Tamil [Eng-Sub]",
-            "ml": "Malayalam [Eng-Sub]",
-            "kn": "Kannada [Eng-Sub]",
-            "bn": "Bengali [Eng-Sub]",
-            "mr": "Marathi [Eng-Sub]",
-            "gu": "Gujarati [Eng-Sub]",
-            "pa": "Punjabi [Eng-Sub]",
-            "ur": "Urdu [Eng-Sub]",
-            
-            # East & Southeast Asian Languages
-            "ja": "Japanese [Eng-Sub]",
-            "ko": "Korean [Eng-Sub]",
-            "zh": "Chinese [Eng-Sub]",
-            "th": "Thai [Eng-Sub]",
-            "id": "Indonesian [Eng-Sub]",
-            "vi": "Vietnamese [Eng-Sub]",
-            "ms": "Malay [Eng-Sub]",
-            "tl": "Tagalog [Eng-Sub]",
-            
-            # European & Global Languages
-            "en": "English",
-            "es": "Spanish [Eng-Sub]",
-            "fr": "French [Eng-Sub]",
-            "de": "German [Eng-Sub]",
-            "it": "Italian [Eng-Sub]",
-            "ru": "Russian [Eng-Sub]",
-            "pt": "Portuguese [Eng-Sub]",
-            "ar": "Arabic [Eng-Sub]",
-            "tr": "Turkish [Eng-Sub]",
-            "uk": "Ukrainian [Eng-Sub]",
-            "pl": "Polish [Eng-Sub]",
-            "nl": "Dutch [Eng-Sub]",
-            
-            # Regional variants
-            "jp": "Japanese [Eng-Sub]",
-            "kr": "Korean [Eng-Sub]",
-            "cn": "Chinese [Eng-Sub]",
-            "ja-jp": "Japanese [Eng-Sub]",
-            "zh-cn": "Chinese (Mandarin) [Eng-Sub]",
-            "zh-tw": "Chinese (Traditional) [Eng-Sub]"
+            "hi": "Hindi [Eng-Sub]", "te": "Telugu [Eng-Sub]", "ta": "Tamil [Eng-Sub]",
+            "ml": "Malayalam [Eng-Sub]", "kn": "Kannada [Eng-Sub]", "bn": "Bengali [Eng-Sub]",
+            "mr": "Marathi [Eng-Sub]", "gu": "Gujarati [Eng-Sub]", "pa": "Punjabi [Eng-Sub]",
+            "ur": "Urdu [Eng-Sub]", "ja": "Japanese [Eng-Sub]", "ko": "Korean [Eng-Sub]",
+            "zh": "Chinese [Eng-Sub]", "th": "Thai [Eng-Sub]", "id": "Indonesian [Eng-Sub]",
+            "vi": "Vietnamese [Eng-Sub]", "ms": "Malay [Eng-Sub]", "tl": "Tagalog [Eng-Sub]",
+            "en": "English", "es": "Spanish [Eng-Sub]", "fr": "French [Eng-Sub]",
+            "de": "German [Eng-Sub]", "it": "Italian [Eng-Sub]", "ru": "Russian [Eng-Sub]",
+            "pt": "Portuguese [Eng-Sub]", "ar": "Arabic [Eng-Sub]", "tr": "Turkish [Eng-Sub]",
+            "uk": "Ukrainian [Eng-Sub]", "pl": "Polish [Eng-Sub]", "nl": "Dutch [Eng-Sub]",
+            "jp": "Japanese [Eng-Sub]", "kr": "Korean [Eng-Sub]", "cn": "Chinese [Eng-Sub]"
         }
         
-        if country in LANG_MAP:
-            audio_str = LANG_MAP[country]
-        else:
-            audio_str = f"{country.upper()} [Eng-Sub]"
+        audio_str = LANG_MAP.get(country, f"{country.upper()} [Eng-Sub]")
 
         if season_from_api:
             season_num = str(season_from_api).capitalize()
@@ -1314,23 +1278,22 @@ def handle_airing_command(message):
         if title_native:
             title_display += f" (<i>{html.escape(title_native)}</i>)"
 
-        if next_ep:
-            if isinstance(next_ep, dict) and "timeUntilAiring" in next_ep:
-                ep_num = str(next_ep["episode"])
-                seconds_left = next_ep["timeUntilAiring"]
+        if next_ep and isinstance(next_ep, dict) and next_ep.get("timeUntilAiring"):
+            ep_num = str(next_ep.get("episode"))
+            seconds_left = next_ep["timeUntilAiring"]
 
-                days, rem = divmod(seconds_left, 86400)
-                hours, rem = divmod(rem, 3600)
-                mins, _ = divmod(rem, 60)
+            days, rem = divmod(seconds_left, 86400)
+            hours, rem = divmod(rem, 3600)
+            mins, _ = divmod(rem, 60)
 
-                time_str = f"{days}d {hours}h {mins}m" if days > 0 else f"{hours}h {mins}m"
-                airing_status_str = f"Episode {ep_num} ᴀɪʀs ɪɴ {time_str}"
-                ep_display = ep_num
-            else:
-                ep_num = str(next_ep.get("episode_number", "N/A"))
-                air_date = next_ep.get("air_date", "TBA")
-                airing_status_str = f"Episode {ep_num} Airs on {air_date}"
-                ep_display = ep_num
+            time_str = f"{days}d {hours}h {mins}m" if days > 0 else f"{hours}h {mins}m"
+            airing_status_str = f"📡 Episode {ep_num} ᴀɪʀs ɪɴ {time_str}"
+            ep_display = ep_num
+        elif next_ep and isinstance(next_ep, dict) and next_ep.get("air_date"):
+            ep_num = str(next_ep.get("episode_number", "N/A"))
+            air_date = next_ep.get("air_date", "TBA")
+            airing_status_str = f"Episode {ep_num} Airs on {air_date}"
+            ep_display = ep_num
         else:
             if status.upper() in ["RETURNING", "ONGOING", "RETUNING SERIES", "RELEASING", "CURRENT"]:
                 ep_display = "Ongoing"
@@ -1338,7 +1301,6 @@ def handle_airing_command(message):
             else:
                 ep_display = "N/A (Completed)"
                 airing_status_str = "FINISHED AIRING"
-
 
         airing_text = (
             f" <b>›› Title :</b> {title_display}\n"
@@ -1373,7 +1335,6 @@ def handle_set_branding(message):
     args = message.text.split(maxsplit=1)
     
     if len(args) < 2:
-        
         try:
             current_brand = database.get_user_branding(user_id) or "None Set"
         except Exception:
@@ -1394,7 +1355,6 @@ def handle_set_branding(message):
         return
 
     try:
-    
         database.set_user_branding(user_id, new_branding)
         bot.reply_to(
             message, 
@@ -2500,7 +2460,7 @@ def generate_custom_media_card(poster_bytes, portrait_bytes_list, title, genres,
 
     studio_name = extra_meta.get("studio", "N/A").upper()
     status_str = extra_meta.get("status", "N/A").upper()
-    media_format = extra_meta.get("media_format", "ANIME").upper() # ANIME, MANGA, MANHWA, MANHUA, etc.
+    media_format = extra_meta.get("media_format", "ANIME").upper()
     vote_average = extra_meta.get("vote_average", 8.4)
     
     try:
@@ -2717,7 +2677,6 @@ def generate_custom_media_card(poster_bytes, portrait_bytes_list, title, genres,
         draw.text((198, 562), "+ My List", fill=(255, 255, 255), font=get_font(14, bold=True))
         draw.text((1180, 640), f"★ {rating_val}", fill=(255, 215, 0), font=get_font(18, bold=True))
 
-        # Embedded Episode Preview Card with second portrait image thumbnail matching the reference image layout
         card_x, card_y = 580, 430
         draw.rounded_rectangle([card_x, card_y, card_x + 310, card_y + 95], radius=12, fill=(25, 25, 30, 220))
         draw.text((595, card_y + 15), f"Episode - {extra_meta.get('ep_num', '12')}", fill=(255, 255, 255), font=get_font(15, bold=True))
@@ -3372,7 +3331,7 @@ def send_style_poster_response(message, cmd, query, branding_name):
         year_str = release_date.split("-")[0] if release_date else "2024"
         
         ep_count = det_res.get("number_of_episodes") or 12
-        chap_str = f"{ep_count * 15}+" if ep_count else "700+"  # Estimates chapters if it's a long running series/manga format
+        chap_str = f"{ep_count * 15}+" if ep_count else "700+"
 
         extra_metadata = {
             "studio": studio_str,
@@ -3422,10 +3381,25 @@ def send_style_poster_response(message, cmd, query, branding_name):
             extra_meta=extra_metadata
         )
         
+        search_id = str(message.message_id)
         current_index = 0
-        total_pages = len(artworks) if 'artworks' in locals() and artworks else len(p_bytes_list)
+        total_pages = len(backdrops) if backdrops else len(p_bytes_list)
         if total_pages == 0:
             total_pages = 1
+
+        SEARCH_CACHE[search_id] = {
+            "title": title,
+            "type": media_format,
+            "genres": ", ".join(genres_list),
+            "rating": str(vote_avg),
+            "status": status_str,
+            "chapters": chap_str,
+            "synopsis": synopsis,
+            "artworks": backdrops if backdrops else [backdrops[0]],
+            "posters": posters if posters else [backdrops[0]],
+            "logo_url": logo_url,
+            "file_ids": {}
+        }
 
         markup = InlineKeyboardMarkup()
         prev_idx = (current_index - 1) % total_pages
@@ -3438,51 +3412,25 @@ def send_style_poster_response(message, cmd, query, branding_name):
         )
         markup.row(InlineKeyboardButton(text="• ᴄʟᴏsᴇ •", callback_data="cancel_session"))
 
-        card_io.seek(0)
-        bot.send_photo(
-            chat_id=message.chat.id,
-            photo=card_io,
-            caption=caption_text,
-            parse_mode="HTML",
-            reply_markup=markup
-        )
-
-        cache_key = f"{item_id}_{cmd}"
-        file_path = os.path.join(CACHE_DIR, f"{cache_key}.jpg")
-        with open(file_path, "wb") as f:
-            f.write(card_io.getvalue())
-
-        app_url = os.environ.get("RENDER_EXTERNAL_URL") or request.host_url.rstrip('/')
-        direct_link = f"{app_url}/poster/{cache_key}"
-        media_title = item.get("title") or item.get("name") or "N/A"
-        release_date = item.get("release_date") or item.get("first_air_date") or ""
-        year_str = release_date.split("-")[0] if release_date else "N/A"
-        media_type_str, studio_str = detect_media_type_and_studio(item, session, TMDB_API_KEY)
-
-        caption_text = (
-            f"<b>● Tɪᴛʟᴇ  :</b> {html.escape(media_title)}\n"
-            f"<b>● Yᴇᴀʀ :</b> {year_str}\n"
-            f"<b>● Tʏᴘᴇ :</b> {media_type_str}\n"
-            f"<b>● Sᴛᴜᴅɪᴏ :</b> {html.escape(studio_str)}\n"
-            f"<b>● Oᴘᴇɴ Iᴍᴀɢᴇ : <a href=\"{direct_link}\">Cʟɪᴄᴋ Hᴇʀᴇ</a></b>\n\n"
-        )
-        markup = InlineKeyboardMarkup()
-        markup.add(InlineKeyboardButton(text="• Uᴘᴅᴀᴛᴇs •", url="https://t.me/Aero_Unity"))
-
         try:
             bot.delete_message(message.chat.id, status_msg.message_id)
         except Exception:
             pass
 
         card_io.seek(0)
-        bot.send_photo(message.chat.id, photo=card_io, caption=caption_text, parse_mode="HTML", reply_markup=markup)
+        bot.send_photo(
+            chat_id=message.chat.id,
+            photo=card_io,
+            caption=f"<b>{html.escape(title)}</b>",
+            parse_mode="HTML",
+            reply_markup=markup
+        )
     except Exception as e:
         try:
             bot.delete_message(message.chat.id, status_msg.message_id)
         except Exception:
             pass
         bot.reply_to(message, f"⚠️ An error occurred: <code>{html.escape(str(e))}</code>", parse_mode="HTML")
-
 
 # ------------------------ #
 # Don't Remove My Credits
@@ -3605,7 +3553,7 @@ def auto_cache_cleaner():
                         os.remove(f_path)
         except Exception as e:
             print(f"Auto cleanup error: {e}")
-        time.sleep(21600)  # Check every 6 hours
+        time.sleep(21600)
 threading.Thread(target=auto_cache_cleaner, daemon=True).start()
 
 # ------------------------ #
