@@ -2566,7 +2566,6 @@ def generate_custom_media_card(poster_bytes, portrait_bytes_list, title, genres,
 
         draw = ImageDraw.Draw(canvas)
 
-        # Added side-by-side multiple image previews
         try:
             if len(portrait_bytes_list) >= 2:
                 p1 = ImageOps.fit(Image.open(io.BytesIO(portrait_bytes_list[0])).convert("RGBA"), (100, 310), method=Image.Resampling.LANCZOS)
@@ -2736,7 +2735,6 @@ def generate_custom_media_card(poster_bytes, portrait_bytes_list, title, genres,
         except Exception:
             pass
 
-
     elif s_upper == "NETM":
         canvas = base_backdrop.copy()
         vignette = Image.new("RGBA", (target_w, target_h), (0, 0, 0, 0))
@@ -2769,8 +2767,6 @@ def generate_custom_media_card(poster_bytes, portrait_bytes_list, title, genres,
         draw.rectangle([60, 550, 170, 590], fill=(220, 20, 60))
         draw.text((85, 562), "▶  Read", fill=(255, 255, 255), font=get_font(14, bold=True))
         draw.text((1180, 640), f"★ {rating_val}", fill=(255, 215, 0), font=get_font(18, bold=True))
-
-        # Embedded Manga Chapter Preview Card with second portrait image thumbnail matching the reference style layout
         card_x, card_y = 580, 430
         draw.rounded_rectangle([card_x, card_y, card_x + 310, card_y + 95], radius=12, fill=(25, 25, 30, 220))
         draw.text((595, card_y + 15), f"Chapter - {extra_meta.get('chapter_num', '1')}", fill=(255, 255, 255), font=get_font(15, bold=True))
@@ -2882,7 +2878,6 @@ def generate_custom_media_card(poster_bytes, portrait_bytes_list, title, genres,
         draw.rounded_rectangle([680, 340, 830, 385], radius=22, fill=(20, 20, 20))
         draw.text((708, 353), "WATCH NOW", fill=(255, 255, 255), font=get_font(12, bold=True))
 
-
     elif s_upper == "LIGHTM":
         canvas = Image.new("RGBA", (target_w, target_h), (245, 245, 250, 255))
         art_left = ImageOps.fit(raw_art, (640, target_h), method=Image.Resampling.LANCZOS)
@@ -2939,7 +2934,6 @@ def generate_custom_media_card(poster_bytes, portrait_bytes_list, title, genres,
         ]
         draw.polygon(star_points, fill=(180, 180, 180))
         draw.text((sidebar_x + 6, sidebar_y + 352), "FAVORITES", fill=(180, 180, 180), font=get_font(9, bold=True))
-
         draw.rounded_rectangle([125, 20, 280, 55], radius=18, fill=(15, 15, 22, 230))
         draw.text((138, 28), "☰", fill=(255, 255, 255), font=get_font(16, bold=True))
         draw.text((165, 30), "AERO UNITY", fill=(0, 210, 255), font=get_font(14, bold=True))
@@ -2973,18 +2967,15 @@ def generate_custom_media_card(poster_bytes, portrait_bytes_list, title, genres,
         draw.rounded_rectangle([125, ty + 12, 420, ty + 72], radius=14, fill=(15, 15, 22, 230))
         draw.text((140, ty + 20), "Studio", fill=(180, 180, 180), font=get_font(11, bold=False))
         draw.text((140, ty + 38), studio_name[:24], fill=(255, 255, 255), font=get_font(13, bold=True))
-
         box_y = ty + 84
         draw.rounded_rectangle([125, box_y, 265, box_y + 55], radius=14, fill=(255, 255, 255))
         draw.text((140, box_y + 10), "Status", fill=(80, 80, 80), font=get_font(10, bold=False))
         draw.text((140, box_y + 26), status_str.capitalize(), fill=(10, 10, 15), font=get_font(13, bold=True))
-
         rel_year = extra_meta.get("year", "2026") if extra_meta else "2026"
         arc_label = f"Fall {rel_year}" if s_upper != "MODM" and "MODM" not in b_upper else "Release"
         draw.rounded_rectangle([280, box_y, 420, box_y + 55], radius=14, fill=(255, 255, 255))
         draw.text((295, box_y + 10), "Arc", fill=(80, 80, 80), font=get_font(10, bold=False))
         draw.text((295, box_y + 26), arc_label, fill=(10, 10, 15), font=get_font(13, bold=True))
-
         card_x, card_y, card_w, card_h = 660, 20, 595, 480
         draw.rounded_rectangle([card_x, card_y, card_x + card_w, card_y + card_h], radius=16, fill=(15, 15, 22, 235))
         
@@ -3043,7 +3034,6 @@ def generate_custom_media_card(poster_bytes, portrait_bytes_list, title, genres,
         ]
         draw.polygon(star_points, fill=(200, 180, 200))
         draw.text((sidebar_x + 6, sidebar_y + 352), "BOOKMARK", fill=(200, 180, 200), font=get_font(9, bold=True))
-
         draw.rounded_rectangle([125, 20, 310, 55], radius=18, fill=(35, 15, 45, 230))
         draw.text((138, 28), "📖", fill=(255, 255, 255), font=get_font(14, bold=True))
         draw.text((165, 30), "AERO UNITY MANGA", fill=(255, 100, 150), font=get_font(13, bold=True))
@@ -3077,16 +3067,13 @@ def generate_custom_media_card(poster_bytes, portrait_bytes_list, title, genres,
         draw.rounded_rectangle([125, ty + 12, 420, ty + 72], radius=14, fill=(35, 15, 45, 230))
         draw.text((140, ty + 20), "Format / Type", fill=(200, 180, 200), font=get_font(11, bold=False))
         draw.text((140, ty + 38), media_format[:24], fill=(255, 100, 150), font=get_font(13, bold=True))
-
         box_y = ty + 84
         draw.rounded_rectangle([125, box_y, 265, box_y + 55], radius=14, fill=(255, 255, 255))
         draw.text((140, box_y + 10), "Status", fill=(80, 80, 80), font=get_font(10, bold=False))
         draw.text((140, box_y + 26), status_str.capitalize(), fill=(35, 15, 45), font=get_font(13, bold=True))
-
         draw.rounded_rectangle([280, box_y, 420, box_y + 55], radius=14, fill=(255, 255, 255))
         draw.text((295, box_y + 10), "Chapters", fill=(80, 80, 80), font=get_font(10, bold=False))
         draw.text((295, box_y + 26), extra_meta.get('chapters', '120+'), fill=(35, 15, 45), font=get_font(13, bold=True))
-
         card_x, card_y, card_w, card_h = 660, 20, 595, 480
         draw.rounded_rectangle([card_x, card_y, card_x + card_w, card_y + card_h], radius=16, fill=(35, 15, 45, 235))
         
@@ -3112,22 +3099,62 @@ def generate_custom_media_card(poster_bytes, portrait_bytes_list, title, genres,
             sy += 18
 
     elif s_upper == "DARK":
-        canvas = Image.new("RGBA", (target_w, target_h), (55, 10, 35, 255))
-        art_right = ImageOps.fit(raw_art, (620, target_h), method=Image.Resampling.LANCZOS)
-        canvas.paste(art_right, (660, 0))
+        canvas = Image.new("RGBA", (target_w, target_h), (20, 20, 25, 255))
+        
+        try:
+            if len(portrait_bytes_list) >= 2:
+                p1 = ImageOps.fit(Image.open(io.BytesIO(portrait_bytes_list[0])).convert("RGBA"), (280, 420), method=Image.Resampling.LANCZOS)
+                p2 = ImageOps.fit(Image.open(io.BytesIO(portrait_bytes_list[1])).convert("RGBA"), (180, 280), method=Image.Resampling.LANCZOS)
+                canvas.paste(p1, (60, 140), p1)
+                canvas.paste(p2, (320, 220), p2)
+            elif portrait_bytes_list:
+                art_right = ImageOps.fit(raw_art, (520, target_h), method=Image.Resampling.LANCZOS)
+                canvas.paste(art_right, (680, 0))
+            else:
+                art_right = ImageOps.fit(raw_art, (520, target_h), method=Image.Resampling.LANCZOS)
+                canvas.paste(art_right, (680, 0))
+        except Exception:
+            art_right = ImageOps.fit(raw_art, (520, target_h), method=Image.Resampling.LANCZOS)
+            canvas.paste(art_right, (680, 0))
+
         draw = ImageDraw.Draw(canvas)
-        draw.text((60, 45), "WEBTOON FLIX", fill=(255, 255, 255), font=get_font(24, bold=True))
-        draw.text((90, 130), title.upper()[:20], fill=(255, 255, 255), font=get_font(38, bold=True))
+        
+        draw.text((680, 45), "🔍   Anime    TV Series", fill=(180, 180, 180), font=get_font(14, bold=False))
+        draw.text((1040, 42), "🔔    A    Aero_Unity", fill=(255, 255, 255), font=get_font(14, bold=True))
+
+        title_words = title.upper().split()
+        ty = 160
+        for i in range(0, len(title_words), 2):
+            line_str = " ".join(title_words[i:i+2])
+            draw.text((680, ty), line_str, fill=(255, 255, 255), font=get_font(42, bold=True))
+            ty += 50
+
+        gx, gy = 680, ty + 20
+        for g in genres[:3]:
+            pill_txt = str(g).capitalize()
+            pw = len(pill_txt) * 10 + 30
+            draw.rounded_rectangle([gx, gy, gx + pw, gy + 36], radius=18, fill=(35, 35, 42))
+            draw.text((gx + 15, gy + 9), pill_txt, fill=(220, 220, 220), font=get_font(12, bold=True))
+            gx += pw + 15
+
+        box_y = gy + 60
+        draw.rounded_rectangle([680, box_y, 1200, box_y + 130], radius=16, fill=(30, 30, 38))
+        draw.text((705, box_y + 18), "Rating", fill=(180, 180, 180), font=get_font(11, bold=False))
+        draw.text((705, box_y + 40), f"{rating_val}", fill=(255, 255, 255), font=get_font(26, bold=True))
+        draw.text((880, box_y + 18), "Duration", fill=(180, 180, 180), font=get_font(11, bold=False))
+        draw.text((880, box_y + 40), "24", fill=(255, 255, 255), font=get_font(26, bold=True))
+        draw.text((705, box_y + 82), "About", fill=(200, 200, 200), font=get_font(12, bold=True))
         words = synopsis.split()
         lines, curr = [], ""
         for w in words:
-            if len(curr + " " + w) < 55: curr += " " + w
+            if len(curr + " " + w) < 65: curr += " " + w
             else: lines.append(curr.strip()); curr = w
         if curr: lines.append(curr.strip())
-        sy = 330
-        for line in lines[:6]:
-            draw.text((60, sy), line, fill=(220, 190, 200), font=get_font(13, bold=False))
-            sy += 20
+
+        sy = box_y + 102
+        for line in lines[:2]:
+            draw.text((705, sy), line, fill=(160, 160, 160), font=get_font(10, bold=False))
+            sy += 14
 
     elif s_upper == "DARKM":
         canvas = Image.new("RGBA", (target_w, target_h), (35, 10, 25, 255))
