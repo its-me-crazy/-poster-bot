@@ -1172,7 +1172,7 @@ def broadcast_unpin_handler(message):
 # Support : @Coders_Grp 
 # ------------------------ #
 
-   @bot.message_handler(commands=['airing'])
+@bot.message_handler(commands=['airing'])
 def handle_airing_command(message):
     user_id = message.from_user.id
     if database.is_banned(user_id):
