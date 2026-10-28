@@ -1224,6 +1224,16 @@ def handle_airing_command(message):
         clean_query = raw_query
 
     try:
+        # Added TMDB fallback fetch alongside AniList to fulfill multi-API source requirement
+        encoded_query = requests.utils.quote(clean_query)
+        tmdb_url = f"https://api.themoviedb.org/3/search/tv?api_key={TMDB_API_KEY}&query={encoded_query}&include_adult=true"
+        tmdb_res = session.get(tmdb_url, timeout=5).json()
+        tmdb_items = tmdb_res.get("results", [])
+        tmdb_det = {}
+        if tmdb_items:
+            t_id = str(tmdb_items[0].get("id"))
+            tmdb_det = session.get(f"https://api.themoviedb.org/3/tv/{t_id}?api_key={TMDB_API_KEY}", timeout=5).json()
+
         res = session.post(
             "https://graphql.anilist.co", 
             json={'query': anilist_query, 'variables': {'search': clean_query}}, 
@@ -1231,18 +1241,26 @@ def handle_airing_command(message):
         ).json()
         
         media = res.get("data", {}).get("Media")
-        if not media:
+        if not media and not tmdb_det:
             bot.edit_message_text(f"‼️ No official anime found for <b>{html.escape(raw_query)}</b>.", message.chat.id, status_msg.message_id, parse_mode="HTML")
             return
 
-        title_romaji = media["title"].get("romaji") or media["title"].get("english") or clean_query
-        title_native = media["title"].get("native", "")
-        next_ep = media.get("nextAiringEpisode")
-        status = media.get("status", "UNKNOWN")
-        season_num = "1"
+        if media:
+            title_romaji = media["title"].get("romaji") or media["title"].get("english") or clean_query
+            title_native = media["title"].get("native", "")
+            next_ep = media.get("nextAiringEpisode")
+            status = media.get("status", "UNKNOWN")
+            country = media.get("countryOfOrigin", "JP").lower()
+            season_from_api = media.get("season")
+        else:
+            title_romaji = tmdb_det.get("name") or clean_query
+            title_native = tmdb_det.get("original_name", "")
+            next_ep = tmdb_det.get("next_episode_to_air")
+            status = tmdb_det.get("status", "UNKNOWN")
+            country = (tmdb_det.get("origin_country") or ["JP"])[0].lower()
+            season_from_api = None
 
-        # Fixed: Use AniList's countryOfOrigin or defaults safely
-        country = media.get("countryOfOrigin", "JP").lower()
+        season_num = "1"
         
         LANG_MAP = {
             # Indian Languages
@@ -1295,8 +1313,8 @@ def handle_airing_command(message):
         else:
             audio_str = f"{country.upper()} [Eng-Sub]"
 
-        if media.get("season"):
-            season_num = str(media.get("season")).capitalize()
+        if season_from_api:
+            season_num = str(season_from_api).capitalize()
             
         season_match = re.search(r'(?:season|s)\s*(\d+)', raw_query, re.IGNORECASE)
         if season_match:
@@ -1307,18 +1325,23 @@ def handle_airing_command(message):
             title_display += f" (<i>{html.escape(title_native)}</i>)"
 
         if next_ep:
-            ep_num = str(next_ep["episode"])
-            seconds_left = next_ep["timeUntilAiring"]
+            if isinstance(next_ep, dict) and "timeUntilAiring" in next_ep:
+                ep_num = str(next_ep["episode"])
+                seconds_left = next_ep["timeUntilAiring"]
 
-            days, rem = divmod(seconds_left, 86400)
-            hours, rem = divmod(rem, 3600)
-            mins, _ = divmod(rem, 60)
+                days, rem = divmod(seconds_left, 86400)
+                hours, rem = divmod(rem, 3600)
+                mins, _ = divmod(rem, 60)
 
-            time_str = f"{days}d {hours}h {mins}m"
-            airing_status_str = f"Episode {ep_num} ᴀɪʀs ɪɴ {time_str}"
+                time_str = f"{days}d {hours}h {mins}m"
+                airing_status_str = f"Episode {ep_num} ᴀɪʀs ɪɴ {time_str}"
+            else:
+                ep_num = str(next_ep.get("episode_number", "N/A"))
+                air_date = next_ep.get("air_date", "TBA")
+                airing_status_str = f"Episode {ep_num} Airs on {air_date}"
         else:
             ep_num = "N/A (Completed/Ended)"
-            airing_status_str = "FINISHED AIRING" if status == "FINISHED" else "NOT YET RELEASED / OFF-SEASON"
+            airing_status_str = "FINISHED AIRING" if status in ["FINISHED", "Ended", "Canceled"] else "NOT YET RELEASED / OFF-SEASON"
 
         airing_text = (
             f" <b>›› Title :</b> {title_display}\n"
