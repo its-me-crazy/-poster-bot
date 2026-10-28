@@ -1257,6 +1257,57 @@ def handle_airing_command(message):
         next_ep = media.get("nextAiringEpisode")
         status = media.get("status", "UNKNOWN")
         season_num = "1"
+
+        orig_lang = det_res.get("original_language", "ja").lower()
+        
+        LANG_MAP = {
+            # Indian Languages
+            "hi": "Hindi [Eng-Sub]",
+            "te": "Telugu [Eng-Sub]",
+            "ta": "Tamil [Eng-Sub]",
+            "ml": "Malayalam [Eng-Sub]",
+            "kn": "Kannada [Eng-Sub]",
+            "bn": "Bengali [Eng-Sub]",
+            "mr": "Marathi [Eng-Sub]",
+            "gu": "Gujarati [Eng-Sub]",
+            "pa": "Punjabi [Eng-Sub]",
+            "ur": "Urdu [Eng-Sub]",
+            
+            # East & Southeast Asian Languages
+            "ja": "Japanese [Eng-Sub]",
+            "ko": "Korean [Eng-Sub]",
+            "zh": "Chinese [Eng-Sub]",
+            "th": "Thai [Eng-Sub]",
+            "id": "Indonesian [Eng-Sub]",
+            "vi": "Vietnamese [Eng-Sub]",
+            "ms": "Malay [Eng-Sub]",
+            "tl": "Tagalog [Eng-Sub]",
+            
+            # European & Global Languages
+            "en": "English",
+            "es": "Spanish [Eng-Sub]",
+            "fr": "French [Eng-Sub]",
+            "de": "German [Eng-Sub]",
+            "it": "Italian [Eng-Sub]",
+            "ru": "Russian [Eng-Sub]",
+            "pt": "Portuguese [Eng-Sub]",
+            "ar": "Arabic [Eng-Sub]",
+            "tr": "Turkish [Eng-Sub]",
+            "uk": "Ukrainian [Eng-Sub]",
+            "pl": "Polish [Eng-Sub]",
+            "nl": "Dutch [Eng-Sub]",
+            
+            # Regional variants
+            "ja-jp": "Japanese [Eng-Sub]",
+            "zh-cn": "Chinese (Mandarin) [Eng-Sub]",
+            "zh-tw": "Chinese (Traditional) [Eng-Sub]"
+        }
+        
+        if orig_lang in LANG_MAP:
+            audio_str = LANG_MAP[orig_lang]
+        else:
+            audio_str = f"{orig_lang.upper()} [Eng-Sub]"
+
         
         if media.get("season"):
             season_num = media.get("season").capitalize()
@@ -1286,7 +1337,7 @@ def handle_airing_command(message):
         airing_text = (
             f" <b>›› Title :</b> {title_display}\n"
             f" <b>›› Season :</b> <code>{season_num}</code>\n"
-            f" <b>›› Episode :<b> <code>{ep_num}</code>\n"
+            f" <b>›› Episode :</b> <code>{ep_num}</code>\n"
             f" <b>›› Audio :</b> Japanese [Eng-Sub]\n"
             f" <b>›› Next Air :</b> <b>{airing_status_str}</b>"
         )
