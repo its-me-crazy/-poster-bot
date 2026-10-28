@@ -3420,7 +3420,12 @@ def send_style_poster_response(message, cmd, query, branding_name):
             style_type=cmd,
             extra_meta=extra_metadata
         )
-                
+        
+        current_index = 0
+        total_pages = len(artworks) if 'artworks' in locals() and artworks else len(p_bytes_list)
+        if total_pages == 0:
+            total_pages = 1
+
         markup = InlineKeyboardMarkup()
         prev_idx = (current_index - 1) % total_pages
         next_idx = (current_index + 1) % total_pages
