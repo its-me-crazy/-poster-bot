@@ -1214,7 +1214,7 @@ def handle_airing_command(message):
     """
 
     try:
-        # TMDB fallback fetch alongside AniList
+        
         encoded_query = requests.utils.quote(clean_query)
         tmdb_url = f"https://api.themoviedb.org/3/search/tv?api_key={TMDB_API_KEY}&query={encoded_query}&include_adult=true"
         tmdb_res = session.get(tmdb_url, timeout=5).json()
@@ -1330,8 +1330,14 @@ def handle_airing_command(message):
                 air_date = next_ep.get("air_date", "TBA")
                 airing_status_str = f"Episode {ep_num} Airs on {air_date}"
         else:
-            ep_num = "N/A (Completed/Ended)"
-            airing_status_str = "FINISHED AIRING" if status in ["FINISHED", "Ended", "Canceled"] else "NOT YET RELEASED / OFF-SEASON"
+            # If there is no active next airing countdown, check if it's ongoing or returning
+            if status in ["RETURNING", "ONGOING", "Retuning Series", "RELEASING"]:
+                ep_num = "Ongoing / Next TBA"
+                airing_status_str = "NEW EPISODES ONGOING"
+            else:
+                ep_num = "N/A (Completed)"
+                airing_status_str = "FINISHED AIRING"
+
 
         airing_text = (
             f" <b>›› Title :</b> {title_display}\n"
