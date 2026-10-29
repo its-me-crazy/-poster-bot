@@ -1694,7 +1694,6 @@ def build_poster_page(search_id, index=0):
         safe_title = html.escape(title)
 
         caption_lines = [
-            f"• <b>Tɪᴛʟᴇ : {safe_title} ({year})</b>",
             f"• <b>Gᴇɴʀᴇ : {genres}</b>",
             f"• <b>Lᴀɴɢᴜᴀɢᴇ : {language_str}</b>",
             f"• <b>Rᴇsᴏʟᴜᴛɪᴏɴs : {resolution_str}</b>",
