@@ -619,13 +619,14 @@ def handle_all_callbacks(call):
 
         total_pages = len(artworks)
         current_index = target_index % total_pages
+        style_type = data.get("style_type", "ani") # Preserves the exact style!
 
         caption_text = (
             f"<b>{html.escape(data.get('title', 'Unknown'))}</b> ❞\n\n"
-            f"» <b>Type:</b> {data.get('type', 'Manhwa')}\n"
+            f"» <b>Type:</b> {data.get('type', 'ANIME')}\n"
             f"» <b>Average Rating:</b> {data.get('rating', '8.4')}\n"
             f"» <b>Status:</b> {data.get('status', 'RELEASING')}\n"
-            f"» <b>Chapters:</b> {data.get('chapters', 'N/A')}\n"
+            f"» <b>Chapters/Episodes:</b> {data.get('chapters', 'N/A')}\n"
             f"» <b>Genres:</b> {html.escape(data.get('genres', 'N/A'))}\n\n"
             f" <u><b>SYNOPSIS</b></u>\n"
             f"<b>➔</b> <i>{html.escape(data.get('synopsis', 'No synopsis')[:400])}...</i> ❞"
@@ -687,13 +688,14 @@ def handle_all_callbacks(call):
                 synopsis=data.get("synopsis", ""),
                 rating_val=raw_rating,
                 logo_url=data.get("logo_url"),
-                branding="Manga Aero",
-                style_type="anim",
+                branding=data.get("branding", "@Aero_Unity"),
+                style_type=style_type, # Passes the correct style layout generator
                 extra_meta={
-                    "media_format": data.get("type", "MANHWA").upper(),
+                    "media_format": data.get("type", "ANIME").upper(),
                     "status": data.get("status", "RELEASING").upper(),
                     "vote_average": raw_rating,
-                    "chapters": data.get("chapters", "N/A")
+                    "chapters": data.get("chapters", "N/A"),
+                    "studio": data.get("studio", "N/A")
                 }
             )
 
@@ -1233,6 +1235,13 @@ def broadcast_unpin_handler(message):
 # Support : @Coders_Grp 
 # ------------------------ #
 
+# ------------------------ #
+# Don't Remove My Credits
+# Owner: @Mr_Mohammed_29
+# Updates: @Aero_Unity 
+# Support : @Coders_Grp 
+# ------------------------ #
+
 @bot.message_handler(commands=['airing'])
 def handle_airing_command(message):
     user_id = message.from_user.id
@@ -1247,9 +1256,11 @@ def handle_airing_command(message):
     status_msg = bot.reply_to(message, f"<b><i>Searching official airing data for <code>{html.escape(raw_query)}</code>...</i></b>", parse_mode="HTML")
 
     import re
-    # Extract season number explicitly if present
+    from datetime import datetime, timezone
+
+    # Extract requested season number
     season_match = re.search(r'(?i)\b(?:season|s)\s*0*(\d+)\b', raw_query)
-    season_num = season_match.group(1) if season_match else "1"
+    req_season = int(season_match.group(1)) if season_match else 1
 
     clean_query = re.sub(r'(?i)\b(?:season|s)\s*0*\d+\b', '', raw_query).strip()
     if not clean_query:
@@ -1267,7 +1278,7 @@ def handle_airing_command(message):
         status
         season
         seasonYear
-        format
+        episodes
         countryOfOrigin
         nextAiringEpisode {
           airingAt
@@ -1283,10 +1294,14 @@ def handle_airing_command(message):
         tmdb_url = f"https://api.themoviedb.org/3/search/tv?api_key={TMDB_API_KEY}&query={encoded_query}&include_adult=true"
         tmdb_res = session.get(tmdb_url, timeout=5).json()
         tmdb_items = tmdb_res.get("results", [])
-        tmdb_det = {}
+        
+        tmdb_next_ep = None
+        tmdb_status = None
         if tmdb_items:
             t_id = str(tmdb_items[0].get("id"))
             tmdb_det = session.get(f"https://api.themoviedb.org/3/tv/{t_id}?api_key={TMDB_API_KEY}", timeout=5).json()
+            tmdb_next_ep = tmdb_det.get("next_episode_to_air")
+            tmdb_status = tmdb_det.get("status")
 
         res = session.post(
             "https://graphql.anilist.co", 
@@ -1295,30 +1310,20 @@ def handle_airing_command(message):
         ).json()
         
         media = res.get("data", {}).get("Media")
-        if not media and not tmdb_det:
+        if not media and not tmdb_items:
             bot.edit_message_text(f"‼️ No official anime found for <b>{html.escape(raw_query)}</b>.", message.chat.id, status_msg.message_id, parse_mode="HTML")
             return
 
-        if media:
-            title_romaji = media["title"].get("romaji") or media["title"].get("english") or clean_query
-            title_native = media["title"].get("native", "")
-            next_ep = media.get("nextAiringEpisode")
-            status = media.get("status", "UNKNOWN")
-            country = media.get("countryOfOrigin", "JP").lower()
-        else:
-            title_romaji = tmdb_det.get("name") or clean_query
-            title_native = tmdb_det.get("original_name", "")
-            next_ep = tmdb_det.get("next_episode_to_air")
-            status = tmdb_det.get("status", "UNKNOWN")
-            country = (tmdb_det.get("origin_country") or ["JP"])[0].lower()
+        title_romaji = media["title"].get("romaji") or media["title"].get("english") or clean_query if media else tmdb_items[0].get("name")
+        title_native = media["title"].get("native", "") if media else ""
+        next_ep = media.get("nextAiringEpisode") if media else None
+        status = media.get("status", "UNKNOWN") if media else tmdb_status
+        country = (media.get("countryOfOrigin") or "JP").lower() if media else "jp"
 
-        # Hardcode override or fallback logic for known ongoing/multi-season shows like Aoashi Season 2
-        # if the official API returns finished but user specifically asked for Season 2
-        if "aoashi" in clean_query.lower() and season_num == "2":
-            status = "RELEASING"
-            airing_status_str = "📡 Episode 1 ᴀɪʀs ɪɴ 3d 12h 30m"
-            ep_display = "1 (Upcoming)"
-        elif next_ep and isinstance(next_ep, dict) and next_ep.get("timeUntilAiring"):
+        # Check if query requests a season higher than 1 when AniList returned Finished
+        is_requested_future_season = req_season > 1 and status == "FINISHED"
+
+        if next_ep and isinstance(next_ep, dict) and next_ep.get("timeUntilAiring"):
             ep_num = str(next_ep.get("episode"))
             seconds_left = next_ep["timeUntilAiring"]
 
@@ -1329,18 +1334,24 @@ def handle_airing_command(message):
             time_str = f"{days}d {hours}h {mins}m" if days > 0 else f"{hours}h {mins}m"
             airing_status_str = f"📡 Episode {ep_num} ᴀɪʀs ɪɴ {time_str}"
             ep_display = ep_num
-        elif next_ep and isinstance(next_ep, dict) and next_ep.get("air_date"):
-            ep_num = str(next_ep.get("episode_number", "N/A"))
-            air_date = next_ep.get("air_date", "TBA")
-            airing_status_str = f"Episode {ep_num} Airs on {air_date}"
+
+        elif tmdb_next_ep and isinstance(tmdb_next_ep, dict):
+            ep_num = str(tmdb_next_ep.get("episode_number", "1"))
+            air_date = tmdb_next_ep.get("air_date", "TBA")
+            airing_status_str = f"📡 Episode {ep_num} Airs on {air_date}"
             ep_display = ep_num
+
+        elif is_requested_future_season or status.upper() in ["NOT_YET_RELEASED", "UPCOMING"]:
+            ep_display = "1 (Upcoming)"
+            airing_status_str = "📡 UPCOMING / TO BE ANNOUNCED"
+
+        elif status.upper() in ["RETURNING", "ONGOING", "RELEASING", "CURRENT"]:
+            ep_display = "Ongoing"
+            airing_status_str = "📡 NEW EPISODES ONGOING"
+
         else:
-            if status.upper() in ["RETURNING", "ONGOING", "RETUNING SERIES", "RELEASING", "CURRENT"]:
-                ep_display = "Ongoing"
-                airing_status_str = "NEW EPISODES ONGOING"
-            else:
-                ep_display = "N/A (Completed)"
-                airing_status_str = "FINISHED AIRING"
+            ep_display = "N/A (Completed)"
+            airing_status_str = "FINISHED AIRING"
 
         LANG_MAP = {
             "hi": "Hindi [Eng-Sub]", "te": "Telugu [Eng-Sub]", "ta": "Tamil [Eng-Sub]",
@@ -1351,9 +1362,7 @@ def handle_airing_command(message):
             "vi": "Vietnamese [Eng-Sub]", "ms": "Malay [Eng-Sub]", "tl": "Tagalog [Eng-Sub]",
             "en": "English", "es": "Spanish [Eng-Sub]", "fr": "French [Eng-Sub]",
             "de": "German [Eng-Sub]", "it": "Italian [Eng-Sub]", "ru": "Russian [Eng-Sub]",
-            "pt": "Portuguese [Eng-Sub]", "ar": "Arabic [Eng-Sub]", "tr": "Turkish [Eng-Sub]",
-            "uk": "Ukrainian [Eng-Sub]", "pl": "Polish [Eng-Sub]", "nl": "Dutch [Eng-Sub]",
-            "jp": "Japanese [Eng-Sub]", "kr": "Korean [Eng-Sub]", "cn": "Chinese [Eng-Sub]"
+            "pt": "Portuguese [Eng-Sub]", "ar": "Arabic [Eng-Sub]", "tr": "Turkish [Eng-Sub]"
         }
         audio_str = LANG_MAP.get(country, f"{country.upper()} [Eng-Sub]")
 
@@ -1363,7 +1372,7 @@ def handle_airing_command(message):
 
         airing_text = (
             f" <b>›› Title :</b> {title_display}\n"
-            f" <b>›› Season :</b> <code>{season_num}</code>\n"
+            f" <b>›› Season :</b> <code>{req_season}</code>\n"
             f" <b>›› Episode :</b> <code>{ep_display}</code>\n"
             f" <b>›› Audio :</b> {audio_str}\n"
             f" <b>›› Next Air :</b> <b>{airing_status_str}</b>"
@@ -1376,7 +1385,8 @@ def handle_airing_command(message):
         bot.send_message(message.chat.id, airing_text, parse_mode="HTML", reply_markup=markup)
 
     except Exception as e:
-        bot.edit_message_text(f"⚠️ Error fetching from official APIs: <code>{html.escape(str(e))}</code>", message.chat.id, status_msg.message_id, parse_mode="HTML")
+        bot.edit_message_text(f"⚠️ Error fetching airing data: <code>{html.escape(str(e))}</code>", message.chat.id, status_msg.message_id, parse_mode="HTML")
+
 
 # ------------------------ #
 # Don't Remove My Credits
@@ -3469,6 +3479,9 @@ def send_style_poster_response(message, cmd, query, branding_name):
             "artworks": backdrops if backdrops else [backdrops[0]],
             "posters": posters if posters else [backdrops[0]],
             "logo_url": logo_url,
+            "style_type": cmd,             
+            "branding": branding_name,     
+            "studio": studio_str,
             "file_ids": {}
         }
 
