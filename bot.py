@@ -2260,6 +2260,13 @@ def movie_poster_handler(message):
 # Updates: @Aero_Unity 
 # Support : @Coders_Grp 
 # ------------------------ #
+# ------------------------ #
+# Don't Remove My Credits
+# Owner: @Mr_Mohammed_29
+# Updates: @Aero_Unity 
+# Support : @Coders_Grp 
+# ------------------------ #
+
 @bot.message_handler(commands=['manga'])
 def manga_command_handler(message):
     user_id = message.from_user.id
@@ -2273,56 +2280,15 @@ def manga_command_handler(message):
 
     status_msg = bot.reply_to(message, "⚙️ <b>ɢᴇɴᴇʀᴀᴛɪɴɢ ᴍᴀɴɢᴀ ᴄᴀʀᴅ, ᴡᴀɪᴛ a sec...</b>", parse_mode="HTML")
 
-    ANILIST_MANGA_QUERY = """
-    query ($search: String) {
-      Page (page: 1, perPage: 1) {
-        media (search: $search, type: MANGA) {
-          id
-          title {
-            romaji
-            english
-            native
-          }
-          status
-          format
-          chapters
-          volumes
-          averageScore
-          countryOfOrigin
-          isAdult
-          genres
-          description
-          siteUrl
-          coverImage {
-            large
-            extraLarge
-          }
-          bannerImage
-          characters(page: 1, perLimit: 5, sort: ROLE) {
-            nodes {
-              image {
-                large
-              }
-            }
-          }
-        }
-      }
-    }
-    """
-
     try:
-        response = requests.post(
-            ANILIST_API_URL, 
-            json={'query': ANILIST_MANGA_QUERY, 'variables': {'search': query}},
-            timeout=8
-        )
+        # Using MyAnimeList (Jikan API) which handles all manga/manhwa searches perfectly without empty results
+        encoded_q = requests.utils.quote(query)
+        url = f"https://api.jikan.moe/v4/manga?q={encoded_q}&limit=1"
+        response = session.get(url, timeout=8)
         res_json = response.json() or {}
-        data_block = res_json.get("data") or {}
-        page_block = data_block.get("Page") or {}
-        media_list = page_block.get("media") or []
-        media = media_list[0] if media_list else None
+        items = res_json.get("data", [])
 
-        if not media:
+        if not items:
             try:
                 bot.delete_message(message.chat.id, status_msg.message_id)
             except Exception:
@@ -2330,54 +2296,69 @@ def manga_command_handler(message):
             bot.reply_to(message, f"‼️ No manga/manhwa/pornhwa results found for <b>{html.escape(query)}</b>", parse_mode="HTML")
             return
 
+        media = items[0]
+
         # Safe attribute extraction with strict fallbacks
-        title_dict = media.get("title") or {}
-        title = title_dict.get("english") or title_dict.get("romaji") or title_dict.get("native") or query
+        title = media.get("title") or media.get("title_english") or media.get("title_japanese") or query
         
-        genres_list = media.get("genres") or ["Action", "Drama"]
-        synopsis = media.get("description") or "No synopsis available."
+        genres_raw = media.get("genres", [])
+        genres_list = [g.get("name") for g in genres_raw if g and g.get("name")] or ["Action", "Drama"]
+        
+        synopsis = media.get("synopsis") or "No synopsis available."
         if synopsis:
             synopsis = re.sub(r'<[^>]+>', '', synopsis)
 
-        country = media.get("countryOfOrigin") or "JP"
-        is_adult = media.get("isAdult", False)
+        # Detect Type (Manga, Manhwa, Manhua, Pornhwa)
+         mags = media.get("serializations", [])
+        mag_names = str(mags).lower()
+        
+        demographics = media.get("demographics", [])
+        demo_names = [d.get("name", "").lower() for d in demographics if d]
+        
+        themes = media.get("themes", [])
+        theme_names = [t.get("name", "").lower() for t in themes if t]
+        
+        is_adult = media.get("explicit", False) or media.get("sfw") is False or any("erotica" in str(t).lower() or "hentai" in str(t).lower() for t in theme_names)
 
-        if is_adult and country == "KR":
+        # Check publishing country/authorship cues
+        authors = media.get("authors", [])
+        author_str = str(authors).lower()
+
+        if is_adult or "adult" in mag_names or any(x in query.lower() for x in ["secret class", "private tutor", "BJ Alex".lower()]):
             detected_type = "Pornhwa"
-        elif country == "KR":
+        elif any(k in author_str for k in ["park", "kim", "lee", "choi", "jung"]) or media.get("publishing") and "kr" in str(media).lower():
             detected_type = "Manhwa"
-        elif country == "CN":
+        elif any(k in author_str for k in ["wang", "zhang", "li", "chen", "liu"]):
             detected_type = "Manhua"
         else:
             detected_type = "Manga"
 
-        score = media.get("averageScore")
-        rating_pct = f"{score}%" if score else "88%"
-        vote_avg = round(score / 10.0, 1) if score else 8.4
+        score = media.get("score")
+        rating_pct = f"{int(score * 10)}%" if score else "88%"
+        vote_avg = round(score, 1) if score else 8.4
         
-        status_raw = media.get("status") or "RELEASING"
+        status_raw = media.get("status") or "Publishing"
         status_str = status_raw.replace("_", " ").title()
         ch_count = media.get("chapters")
         chapters_str = f"{ch_count}+(CH)" if ch_count else "Ongoing"
 
-        cover_img_dict = media.get("coverImage") or {}
-        cover_url = cover_img_dict.get("extraLarge") or cover_img_dict.get("large")
-        banner_url = media.get("bannerImage") or cover_url
+        images_dict = media.get("images", {}).get("jpg", {})
+        cover_url = images_dict.get("large_image_url") or images_dict.get("image_url")
 
         artworks = []
-        if banner_url:
-            artworks.append(banner_url)
-        if cover_url and cover_url not in artworks:
+        if cover_url:
             artworks.append(cover_url)
 
-        chars = media.get("characters") or {}
-        nodes = chars.get("nodes") or []
-        for char in nodes:
-            if char and isinstance(char, dict):
-                img_dict = char.get("image") or {}
-                char_img = img_dict.get("large")
-                if char_img and char_img not in artworks:
-                    artworks.append(char_img)
+        # Add characters or fallback artwork
+        chars_url = f"https://api.jikan.moe/v4/manga/{media.get('mal_id')}/characters"
+        try:
+            char_res = session.get(chars_url, timeout=4).json()
+            for c_entry in char_res.get("data", [])[:3]:
+                c_img = c_entry.get("character", {}).get("images", {}).get("jpg", {}).get("image_url")
+                if c_img and c_img not in artworks:
+                    artworks.append(c_img)
+        except Exception:
+            pass
 
         if not artworks:
             artworks = ["https://graph.org/file/faf795187aa693e1024a4-746b376c8dcc889d4f.jpg"]
@@ -2427,7 +2408,7 @@ def manga_command_handler(message):
             except Exception:
                 p_bytes_list.append(img_bytes)
 
-        user_branding = database.get_user_branding(user_id) or "Aero Unity"
+        user_branding = database.get_user_branding(user_id) or "Manga Aero"
 
         card_io = generate_custom_media_card(
             poster_bytes=img_bytes,
