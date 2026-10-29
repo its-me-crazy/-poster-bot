@@ -2260,7 +2260,7 @@ def manga_command_handler(message):
     status_msg = bot.reply_to(message, "⚙️ <b>ɢᴇɴᴇʀᴀᴛɪɴɢ ᴍᴀɴɢᴀ ᴄᴀʀᴅ, ᴡᴀɪᴛ a sec...</b>", parse_mode="HTML")
 
     try:
-        # Using MyAnimeList (Jikan API) which handles all manga/manhwa searches perfectly without empty results
+    
         encoded_q = requests.utils.quote(query)
         url = f"https://api.jikan.moe/v4/manga?q={encoded_q}&limit=1"
         response = session.get(url, timeout=8)
@@ -2276,10 +2276,7 @@ def manga_command_handler(message):
             return
 
         media = items[0]
-
-        # Safe attribute extraction with strict fallbacks
-        title = media.get("title") or media.get("title_english") or media.get("title_japanese") or query
-        
+        title = media.get("title") or media.get("title_english") or media.get("title_japanese") or query 
         genres_raw = media.get("genres", [])
         genres_list = [g.get("name") for g in genres_raw if g and g.get("name")] or ["Action", "Drama"]
         
@@ -2287,19 +2284,13 @@ def manga_command_handler(message):
         if synopsis:
             synopsis = re.sub(r'<[^>]+>', '', synopsis)
 
-        # Detect Type (Manga, Manhwa, Manhua, Pornhwa)
-         mags = media.get("serializations", [])
+        mags = media.get("serializations", [])
         mag_names = str(mags).lower()
-        
         demographics = media.get("demographics", [])
-        demo_names = [d.get("name", "").lower() for d in demographics if d]
-        
+        demo_names = [d.get("name", "").lower() for d in demographics if d]   
         themes = media.get("themes", [])
-        theme_names = [t.get("name", "").lower() for t in themes if t]
-        
+        theme_names = [t.get("name", "").lower() for t in themes if t]  
         is_adult = media.get("explicit", False) or media.get("sfw") is False or any("erotica" in str(t).lower() or "hentai" in str(t).lower() for t in theme_names)
-
-        # Check publishing country/authorship cues
         authors = media.get("authors", [])
         author_str = str(authors).lower()
 
