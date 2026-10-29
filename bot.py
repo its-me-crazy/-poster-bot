@@ -2783,8 +2783,17 @@ def generate_custom_media_card(poster_bytes, portrait_bytes_list, title, genres,
         for y in range(250, target_h):
             g_draw.line([(0, y), (target_w, y)], fill=(0, 0, 0, int(230 * ((y - 250) / 470))))
         canvas.alpha_composite(gradient)
-        draw.rectangle([50, 145, 780, 220], fill=(15, 15, 15, 220))
-        draw.text((60, 160), title, fill=(255, 255, 255), font=get_font(42, bold=True))
+
+        font_title_obj = get_font(42, bold=True)
+        try:
+            bbox = font_title_obj.getbbox(title)
+            text_w = bbox[2] - bbox[0]
+        except Exception:
+            text_w = len(title) * 24
+        
+        box_right = min(780, max(250, 60 + text_w + 30))
+        draw.rectangle([50, 145, box_right, 220], fill=(15, 15, 15, 220))
+        draw.text((60, 160), title, fill=(255, 255, 255), font=font_title_obj)
         draw.rounded_rectangle([60, 230, 130, 258], radius=4, fill=(50, 50, 50, 200))
         draw.text((70, 235), f"{status_str}", fill=(200, 200, 200), font=get_font(13, bold=False))
         draw.text((140, 235), " • " + ", ".join(genres[:3]), fill=(200, 200, 200), font=get_font(13, bold=False))
