@@ -1228,20 +1228,6 @@ def broadcast_unpin_handler(message):
 # Support : @Coders_Grp 
 # ------------------------ #
 
-# ------------------------ #
-# Don't Remove My Credits
-# Owner: @Mr_Mohammed_29
-# Updates: @Aero_Unity 
-# Support : @Coders_Grp 
-# ------------------------ #
-
-# ------------------------ #
-# Don't Remove My Credits
-# Owner: @Mr_Mohammed_29
-# Updates: @Aero_Unity 
-# Support : @Coders_Grp 
-# ------------------------ #
-
 @bot.message_handler(commands=['airing'])
 def handle_airing_command(message):
     user_id = message.from_user.id
@@ -2254,12 +2240,6 @@ def movie_poster_handler(message):
     except Exception as e:
         bot.reply_to(message, f"❌ Error sending poster: {e}", parse_mode="HTML")
 
-# ------------------------ #
-# Don't Remove My Credits
-# Owner: @Mr_Mohammed_29
-# Updates: @Aero_Unity 
-# Support : @Coders_Grp 
-# ------------------------ #
 # ------------------------ #
 # Don't Remove My Credits
 # Owner: @Mr_Mohammed_29
