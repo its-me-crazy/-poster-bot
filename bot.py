@@ -2667,8 +2667,18 @@ def generate_custom_media_card(poster_bytes, portrait_bytes_list, title, genres,
         canvas.alpha_composite(vignette)
         draw = ImageDraw.Draw(canvas)
         draw.text((60, 40), "N", fill=(229, 9, 20), font=get_font(48, bold=True))
-        draw.rectangle([50, 325, 780, 400], fill=(15, 15, 20, 240))
-        draw.text((60, 340), title.upper()[:25], fill=(255, 255, 255), font=get_font(48, bold=True))
+            
+        font_net_title = get_font(48, bold=True)
+        display_title = title.upper()[:25]
+        try:
+            bbox = font_net_title.getbbox(display_title)
+            text_w = bbox[2] - bbox[0]
+        except Exception:
+            text_w = len(display_title) * 28
+            
+        box_right = min(780, max(280, 60 + text_w + 40))
+        draw.rectangle([50, 325, box_right, 400], fill=(15, 15, 20, 240))
+        draw.text((60, 340), display_title, fill=(255, 255, 255), font=font_net_title)
         rel_year = extra_meta.get("year", "2024") if extra_meta else "2024"
         meta_str = f"{match_pct}% Match    {rel_year}    TV-14    {extra_meta.get('episodes', '12')} Episodes    HD"
         draw.text((60, 415), meta_str, fill=(70, 211, 105), font=get_font(14, bold=True))
@@ -2742,8 +2752,18 @@ def generate_custom_media_card(poster_bytes, portrait_bytes_list, title, genres,
         for line in lines[:3]:
             draw.text((60, sy), line, fill=(200, 200, 200), font=get_font(13, bold=False))
             sy += 18
-        draw.rectangle([60, 550, 170, 590], fill=(220, 20, 60))
-        draw.text((85, 562), "▶  Read", fill=(255, 255, 255), font=get_font(14, bold=True))
+    
+        font_netm_title = get_font(48, bold=True)
+        display_title_m = title.upper()[:25]
+        try:
+            bbox_m = font_netm_title.getbbox(display_title_m)
+            text_w_m = bbox_m[2] - bbox_m[0]
+        except Exception:
+            text_w_m = len(display_title_m) * 28
+            
+        box_right_m = min(780, max(280, 60 + text_w_m + 40))
+        draw.rectangle([50, 325, box_right_m, 400], fill=(15, 15, 20, 240))
+        draw.text((60, 340), display_title_m, fill=(255, 255, 255), font=font_netm_title)
         draw.text((1180, 640), f"★ {rating_val}", fill=(255, 215, 0), font=get_font(18, bold=True))
         card_x, card_y = 580, 430
         draw.rounded_rectangle([card_x, card_y, card_x + 310, card_y + 95], radius=12, fill=(25, 25, 30, 220))
