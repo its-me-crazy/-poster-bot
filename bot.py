@@ -1338,7 +1338,7 @@ def handle_airing_command(message):
         elif tmdb_next_ep and isinstance(tmdb_next_ep, dict):
             ep_num = str(tmdb_next_ep.get("episode_number", "1"))
             air_date = tmdb_next_ep.get("air_date", "TBA")
-            airing_status_str = f"📡 Episode {ep_num} Airs on {air_date}"
+            airing_status_str = f"Episode {ep_num} Airs on {air_date}"
             ep_display = ep_num
 
         elif is_requested_future_season or status.upper() in ["NOT_YET_RELEASED", "UPCOMING"]:
@@ -1347,7 +1347,7 @@ def handle_airing_command(message):
 
         elif status.upper() in ["RETURNING", "ONGOING", "RELEASING", "CURRENT"]:
             ep_display = "Ongoing"
-            airing_status_str = "📡 NEW EPISODES ONGOING"
+            airing_status_str = "NEW EPISODES ONGOING"
 
         else:
             ep_display = "N/A (Completed)"
@@ -2260,6 +2260,12 @@ def movie_poster_handler(message):
 # Updates: @Aero_Unity 
 # Support : @Coders_Grp 
 # ------------------------ #
+# ------------------------ #
+# Don't Remove My Credits
+# Owner: @Mr_Mohammed_29
+# Updates: @Aero_Unity 
+# Support : @Coders_Grp 
+# ------------------------ #
 
 @bot.message_handler(commands=['manga'])
 def manga_command_handler(message):
@@ -2315,8 +2321,9 @@ def manga_command_handler(message):
             json={'query': ANILIST_MANGA_QUERY, 'variables': {'search': query}},
             timeout=8
         )
-        res_json = response.json()
-        media = res_json.get("data", {}).get("Media")
+        res_json = response.json() or {}
+        data_block = res_json.get("data") or {}
+        media = data_block.get("Media")
 
         if not media:
             try:
@@ -2326,14 +2333,14 @@ def manga_command_handler(message):
             bot.reply_to(message, f"‼️ No manga/manhwa/pornhwa results found for <b>{html.escape(query)}</b>", parse_mode="HTML")
             return
 
-        # Safe extractions with fallbacks for None values
+        # Safe attribute extraction with strict fallbacks against NoneType errors
         title_dict = media.get("title") or {}
         title = title_dict.get("english") or title_dict.get("romaji") or title_dict.get("native") or query
         
-        genres_list = media.get("genres") or ["Romance", "Drama"]
+        genres_list = media.get("genres") or ["Action", "Drama"]
         synopsis = media.get("description") or "No synopsis available."
         if synopsis:
-            synopsis = synopsis.replace("<br>", "\n").replace("<i>", "").replace("</i>", "").replace("<b>", "").replace("</b>", "")
+            synopsis = re.sub(r'<[^>]+>', '', synopsis)  # Strip all HTML tags cleanly
 
         country = media.get("countryOfOrigin") or "JP"
         is_adult = media.get("isAdult", False)
@@ -2354,7 +2361,7 @@ def manga_command_handler(message):
         status_raw = media.get("status") or "RELEASING"
         status_str = status_raw.replace("_", " ").title()
         ch_count = media.get("chapters")
-        chapters_str = f"{ch_count}+(CH)" if ch_count else "318+(CH)"
+        chapters_str = f"{ch_count}+(CH)" if ch_count else "Ongoing"
 
         cover_img_dict = media.get("coverImage") or {}
         cover_url = cover_img_dict.get("extraLarge") or cover_img_dict.get("large")
@@ -2392,6 +2399,8 @@ def manga_command_handler(message):
             "artworks": artworks,
             "posters": posters,
             "logo_url": None,
+            "style_type": "anim",
+            "branding": "Manga Aero",
             "file_ids": {}
         }
 
@@ -2409,7 +2418,11 @@ def manga_command_handler(message):
             f"<b>➔</b> <i>{html.escape(synopsis[:400])}...</i> ❞"
         )
 
-        img_bytes = requests.get(artworks[current_index], timeout=5).content
+        try:
+            img_bytes = requests.get(artworks[current_index], timeout=5).content
+        except Exception:
+            img_bytes = requests.get("https://graph.org/file/faf795187aa693e1024a4-746b376c8dcc889d4f.jpg", timeout=5).content
+
         p_bytes_list = []
         for p_url in posters[:3]:
             try:
