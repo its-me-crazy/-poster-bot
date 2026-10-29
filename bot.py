@@ -2260,19 +2260,6 @@ def movie_poster_handler(message):
 # Updates: @Aero_Unity 
 # Support : @Coders_Grp 
 # ------------------------ #
-# ------------------------ #
-# Don't Remove My Credits
-# Owner: @Mr_Mohammed_29
-# Updates: @Aero_Unity 
-# Support : @Coders_Grp 
-# ------------------------ #
-# ------------------------ #
-# Don't Remove My Credits
-# Owner: @Mr_Mohammed_29
-# Updates: @Aero_Unity 
-# Support : @Coders_Grp 
-# ------------------------ #
-
 @bot.message_handler(commands=['manga'])
 def manga_command_handler(message):
     user_id = message.from_user.id
@@ -2288,32 +2275,34 @@ def manga_command_handler(message):
 
     ANILIST_MANGA_QUERY = """
     query ($search: String) {
-      Media (search: $search, type: MANGA) {
-        id
-        title {
-          romaji
-          english
-          native
-        }
-        status
-        format
-        chapters
-        volumes
-        averageScore
-        countryOfOrigin
-        isAdult
-        genres
-        description
-        siteUrl
-        coverImage {
-          large
-          extraLarge
-        }
-        bannerImage
-        characters(page: 1, perLimit: 5, sort: ROLE) {
-          nodes {
-            image {
-              large
+      Page (page: 1, perPage: 1) {
+        media (search: $search, type: MANGA) {
+          id
+          title {
+            romaji
+            english
+            native
+          }
+          status
+          format
+          chapters
+          volumes
+          averageScore
+          countryOfOrigin
+          isAdult
+          genres
+          description
+          siteUrl
+          coverImage {
+            large
+            extraLarge
+          }
+          bannerImage
+          characters(page: 1, perLimit: 5, sort: ROLE) {
+            nodes {
+              image {
+                large
+              }
             }
           }
         }
@@ -2329,7 +2318,9 @@ def manga_command_handler(message):
         )
         res_json = response.json() or {}
         data_block = res_json.get("data") or {}
-        media = data_block.get("Media")
+        page_block = data_block.get("Page") or {}
+        media_list = page_block.get("media") or []
+        media = media_list[0] if media_list else None
 
         if not media:
             try:
@@ -2339,14 +2330,14 @@ def manga_command_handler(message):
             bot.reply_to(message, f"‼️ No manga/manhwa/pornhwa results found for <b>{html.escape(query)}</b>", parse_mode="HTML")
             return
 
-        # Safe attribute extraction with strict fallbacks against NoneType errors
+        # Safe attribute extraction with strict fallbacks
         title_dict = media.get("title") or {}
         title = title_dict.get("english") or title_dict.get("romaji") or title_dict.get("native") or query
         
         genres_list = media.get("genres") or ["Action", "Drama"]
         synopsis = media.get("description") or "No synopsis available."
         if synopsis:
-            synopsis = re.sub(r'<[^>]+>', '', synopsis)  # Strip all HTML tags cleanly
+            synopsis = re.sub(r'<[^>]+>', '', synopsis)
 
         country = media.get("countryOfOrigin") or "JP"
         is_adult = media.get("isAdult", False)
@@ -2436,7 +2427,7 @@ def manga_command_handler(message):
             except Exception:
                 p_bytes_list.append(img_bytes)
 
-        user_branding = database.get_user_branding(user_id) or "Manga Aero"
+        user_branding = database.get_user_branding(user_id) or "Aero Unity"
 
         card_io = generate_custom_media_card(
             poster_bytes=img_bytes,
@@ -2486,6 +2477,7 @@ def manga_command_handler(message):
         except Exception:
             pass
         bot.reply_to(message, f"❌ Error generating manga card: <code>{html.escape(str(e))}</code>", parse_mode="HTML")
+
 
 # ------------------------ #
 # Don't Remove My Credits
