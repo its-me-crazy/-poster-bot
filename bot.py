@@ -2843,50 +2843,57 @@ def generate_custom_media_card(poster_bytes, portrait_bytes_list, title, genres,
 # ------------------------ #
     
     elif s_upper == "LIGHT":
-        canvas = Image.new("RGBA", (target_w, target_h), (255, 255, 255, 255))
-        
         try:
-            if len(portrait_bytes_list) >= 2:
-                p1 = ImageOps.fit(Image.open(io.BytesIO(portrait_bytes_list[0])).convert("RGBA"), (300, 300), method=Image.Resampling.LANCZOS)
-                p2 = ImageOps.fit(Image.open(io.BytesIO(portrait_bytes_list[1])).convert("RGBA"), (220, 220), method=Image.Resampling.LANCZOS)
-                canvas.paste(p1, (40, 220), p1)
-                canvas.paste(p2, (260, 150), p2)
-            elif portrait_bytes_list:
-                art_left = ImageOps.fit(raw_art, (640, target_h), method=Image.Resampling.LANCZOS)
-                canvas.paste(art_left, (0, 0))
-            else:
-                art_left = ImageOps.fit(raw_art, (640, target_h), method=Image.Resampling.LANCZOS)
-                canvas.paste(art_left, (0, 0))
+            base_backdrop = ImageOps.fit(raw_art, (target_w, target_h), method=Image.Resampling.LANCZOS)
         except Exception:
-            art_left = ImageOps.fit(raw_art, (640, target_h), method=Image.Resampling.LANCZOS)
-            canvas.paste(art_left, (0, 0))
-
-        grad_left = Image.new("RGBA", (640, 200), (0, 0, 0, 0))
-        g_draw_l = ImageDraw.Draw(grad_left)
-        for y in range(200):
-            g_draw_l.line([(0, y), (640, y)], fill=(0, 0, 0, int(180 * (y / 200))))
-        canvas.alpha_composite(grad_left, (0, 520))
+            base_backdrop = Image.new("RGBA", (target_w, target_h), (15, 15, 20, 255))
+            
+        canvas = base_backdrop.copy()
+        overlay = Image.new("RGBA", (target_w, target_h), (10, 10, 15, 190))
+        canvas.alpha_composite(overlay)
         
         draw = ImageDraw.Draw(canvas)
-        draw.text((680, 30), "AERO UNITY", fill=(0, 0, 0), font=get_font(22, bold=True))
-        draw.text((835, 30), "[ANIME]", fill=(80, 80, 80), font=get_font(22, bold=False))
-        draw.text((680, 110), title.upper()[:22], fill=(10, 10, 10), font=get_font(48, bold=True))
-        draw.line([(680, 180), (1220, 180)], fill=(180, 180, 180), width=2)
+        draw.text((60, 40), "Aero_Unity", fill=(255, 75, 75), font=get_font(16, bold=True))
+        
+        title_words = title.upper().split()
+        ty = 110
+        for i in range(0, len(title_words), 3):
+            line_str = " ".join(title_words[i:i+3])
+            draw.text((60, ty), line_str, fill=(255, 255, 255), font=get_font(42, bold=True))
+            ty += 48
+
+        draw.text((60, ty + 10), studio_name[:25], fill=(255, 75, 75), font=get_font(12, bold=True))
+        draw.line([(60, ty + 35), (550, ty + 35)], fill=(120, 120, 130), width=2)
         
         words = synopsis.split()
         lines, curr = [], ""
         for w in words:
-            if len(curr + " " + w) < 52: curr += " " + w
+            if len(curr + " " + w) < 75: curr += " " + w
             else: lines.append(curr.strip()); curr = w
         if curr: lines.append(curr.strip())
         
-        sy = 205
-        for line in lines[:5]:
-            draw.text((680, sy), line, fill=(50, 50, 50), font=get_font(14, bold=False))
-            sy += 22
-            
-        draw.rounded_rectangle([680, 340, 830, 385], radius=22, fill=(20, 20, 20))
-        draw.text((708, 353), "WATCH NOW", fill=(255, 255, 255), font=get_font(12, bold=True))
+        sy = ty + 50
+        for line in lines[:3]:
+            draw.text((60, sy), line, fill=(200, 200, 210), font=get_font(11, bold=False))
+            sy += 16
+
+        stat_y = sy + 25
+        stats_data = [
+            ("RATING", str(rating_val)),
+            ("YEAR", extra_meta.get("year", "2024")),
+            ("EPISODES", str(extra_meta.get("episodes", "12").split()[0])),
+            ("STATUS", status_str[:8])
+        ]
+        
+        sx = 60
+        for label, val in stats_data:
+            draw.text((sx, stat_y), label, fill=(150, 150, 160), font=get_font(10, bold=False))
+            draw.text((sx, stat_y + 18), val, fill=(255, 255, 255), font=get_font(20, bold=True))
+            draw.line([(sx + 75, stat_y + 5), (sx + 75, stat_y + 40)], fill=(255, 75, 75), width=2)
+            sx += 100
+
+        genre_str = ", ".join(genres[:3]).upper() if genres else "ACTION, ADVENTURE"
+        draw.text((60, stat_y + 60), genre_str, fill=(180, 180, 190), font=get_font(11, bold=True))
 
 # ------------------------ #
 # Don't Remove My Credits
@@ -2894,28 +2901,60 @@ def generate_custom_media_card(poster_bytes, portrait_bytes_list, title, genres,
 # Updates: @Aero_Unity 
 # Support : @Coders_Grp 
 # ------------------------ #
-    
     elif s_upper == "LIGHTM":
-        canvas = Image.new("RGBA", (target_w, target_h), (245, 245, 250, 255))
-        art_left = ImageOps.fit(raw_art, (640, target_h), method=Image.Resampling.LANCZOS)
-        canvas.paste(art_left, (0, 0))
+        canvas = Image.new("RGBA", (target_w, target_h), (250, 250, 252, 255))
         draw = ImageDraw.Draw(canvas)
-        draw.text((680, 30), "AERO UNITY", fill=(200, 30, 30), font=get_font(22, bold=True))
-        draw.text((835, 30), "[MANGA]", fill=(80, 80, 80), font=get_font(22, bold=False))
-        draw.text((680, 110), title.upper()[:22], fill=(10, 10, 10), font=get_font(48, bold=True))
-        draw.line([(680, 180), (1220, 180)], fill=(200, 30, 30), width=2)
+        
+        draw.text((60, 35), "AERO_UNITY", fill=(10, 10, 15), font=get_font(18, bold=True))
+        
+        nav_items = ["OVERVIEW", "CHARACTERS", "EPISODES"]
+        nx = 260
+        for nav in nav_items:
+            draw.text((nx, 40), nav, fill=(120, 120, 130), font=get_font(10, bold=False))
+            nx += 110
+            
+        draw.rounded_rectangle([1150, 30, 1220, 58], radius=14, outline=(180, 180, 190), width=2)
+        draw.text((1170, 38), "Anime", fill=(100, 100, 110), font=get_font(11, bold=False))
+        draw.text((60, 140), studio_name[:20], fill=(120, 120, 130), font=get_font(11, bold=True))
+        
+        title_words = title.upper().split()
+        ty = 165
+        for t_line in title_words[:2]:
+            draw.text((60, ty), t_line, fill=(255, 75, 140), font=get_font(42, bold=True))
+            ty += 45
+
         words = synopsis.split()
         lines, curr = [], ""
         for w in words:
-            if len(curr + " " + w) < 52: curr += " " + w
+            if len(curr + " " + w) < 55: curr += " " + w
             else: lines.append(curr.strip()); curr = w
         if curr: lines.append(curr.strip())
-        sy = 205
-        for line in lines[:5]:
-            draw.text((680, sy), line, fill=(50, 50, 50), font=get_font(14, bold=False))
-            sy += 22
-        draw.rounded_rectangle([680, 340, 830, 385], radius=22, fill=(200, 30, 30))
-        draw.text((708, 353), "READ MANGA", fill=(255, 255, 255), font=get_font(12, bold=True))
+        
+        sy = ty + 15
+        for line in lines[:4]:
+            draw.text((60, sy), line, fill=(110, 110, 120), font=get_font(11, bold=False))
+            sy += 18
+
+        draw.rounded_rectangle([60, sy + 25, 215, sy + 75], radius=24, fill=(15, 15, 20))
+        draw.text((95, sy + 43), "Watch Trailer", fill=(255, 255, 255), font=get_font(12, bold=True))
+        draw.ellipse([235, sy + 38, 275, sy + 78], outline=(200, 200, 210), width=2)
+        draw.text((250, sy + 50), "▶", fill=(100, 100, 110), font=get_font(12, bold=True))
+        draw.text((315, sy + 50), "Read Synopsis", fill=(100, 100, 110), font=get_font(12, bold=True))
+
+        try:
+            if portrait_bytes_list:
+                raw_p = Image.open(io.BytesIO(portrait_bytes_list[0])).convert("RGBA")
+            else:
+                raw_p = raw_art
+            p_crop = ImageOps.fit(raw_p, (380, 240), method=Image.Resampling.LANCZOS)
+            
+            mask = Image.new("L", (380, 240), 0)
+            mask_draw = ImageDraw.Draw(mask)
+            mask_draw.rounded_rectangle([0, 0, 380, 240], radius=24, fill=255)
+            
+            canvas.paste(p_crop, (830, 220), mask)
+        except Exception:
+            pass
 
 # ------------------------ #
 # Don't Remove My Credits
@@ -3137,61 +3176,51 @@ def generate_custom_media_card(poster_bytes, portrait_bytes_list, title, genres,
 # ------------------------ #
     
     elif s_upper == "DARK":
-        canvas = Image.new("RGBA", (target_w, target_h), (20, 20, 25, 255))
-        
-        try:
-            if len(portrait_bytes_list) >= 2:
-                p1 = ImageOps.fit(Image.open(io.BytesIO(portrait_bytes_list[0])).convert("RGBA"), (280, 420), method=Image.Resampling.LANCZOS)
-                p2 = ImageOps.fit(Image.open(io.BytesIO(portrait_bytes_list[1])).convert("RGBA"), (180, 280), method=Image.Resampling.LANCZOS)
-                canvas.paste(p1, (60, 140), p1)
-                canvas.paste(p2, (320, 220), p2)
-            elif portrait_bytes_list:
-                art_right = ImageOps.fit(raw_art, (520, target_h), method=Image.Resampling.LANCZOS)
-                canvas.paste(art_right, (680, 0))
-            else:
-                art_right = ImageOps.fit(raw_art, (520, target_h), method=Image.Resampling.LANCZOS)
-                canvas.paste(art_right, (680, 0))
-        except Exception:
-            art_right = ImageOps.fit(raw_art, (520, target_h), method=Image.Resampling.LANCZOS)
-            canvas.paste(art_right, (680, 0))
-
+        canvas = Image.new("RGBA", (target_w, target_h), (255, 255, 255, 255))
         draw = ImageDraw.Draw(canvas)
-        draw.text((680, 45), "🔍   Anime    TV Series", fill=(180, 180, 180), font=get_font(14, bold=False))
-        draw.text((1040, 42), "🔔    A    Aero_Unity", fill=(255, 255, 255), font=get_font(14, bold=True))
+        draw.ellipse([20, 320, 280, 580], fill=(138, 75, 92, 255))
+        draw.ellipse([300, 560, 440, 700], fill=(138, 75, 92, 255))
+        draw.ellipse([880, 420, 1020, 560], fill=(138, 75, 92, 255))
+        draw.ellipse([900, 20, 960, 80], fill=(138, 75, 92, 255))
 
+        try:
+            raw_p = Image.open(io.BytesIO(portrait_bytes_list[0])).convert("RGBA") if portrait_bytes_list else raw_art
+            p_crop = ImageOps.fit(raw_p, (260, 260), method=Image.Resampling.LANCZOS)
+            
+            mask = Image.new("L", (260, 260), 0)
+            mask_draw = ImageDraw.Draw(mask)
+            mask_draw.ellipse([0, 0, 260, 260], fill=255)
+            
+            canvas.paste(p_crop, (110, 205), mask)
+        except Exception:
+            pass
+
+        draw.text((440, 120), "SOLO", fill=(50, 40, 45), font=get_font(38, bold=True))
+        
         title_words = title.upper().split()
-        ty = 160
-        for i in range(0, len(title_words), 2):
-            line_str = " ".join(title_words[i:i+2])
-            draw.text((680, ty), line_str, fill=(255, 255, 255), font=get_font(42, bold=True))
-            ty += 50
-
-        gx, gy = 680, ty + 20
-        for g in genres[:3]:
-            pill_txt = str(g).capitalize()
-            pw = len(pill_txt) * 10 + 30
-            draw.rounded_rectangle([gx, gy, gx + pw, gy + 36], radius=18, fill=(35, 35, 42))
-            draw.text((gx + 15, gy + 9), pill_txt, fill=(220, 220, 220), font=get_font(12, bold=True))
-            gx += pw + 15
-
-        box_y = gy + 60
-        draw.rounded_rectangle([680, box_y, 1200, box_y + 130], radius=16, fill=(30, 30, 38))
-        draw.text((705, box_y + 18), "Rating", fill=(180, 180, 180), font=get_font(11, bold=False))
-        draw.text((705, box_y + 40), f"{rating_val}", fill=(255, 255, 255), font=get_font(26, bold=True))
-        draw.text((880, box_y + 18), "Duration", fill=(180, 180, 180), font=get_font(11, bold=False))
-        draw.text((880, box_y + 40), "24", fill=(255, 255, 255), font=get_font(26, bold=True))
-        draw.text((705, box_y + 82), "About", fill=(200, 200, 200), font=get_font(12, bold=True))
+        t_line1 = title_words[0] if title_words else "SOLO"
+        t_line2 = " ".join(title_words[1:]) if len(title_words) > 1 else "LEVELING"
+        
+        draw.text((440, 420), t_line1, fill=(50, 40, 45), font=get_font(38, bold=True))
+        draw.text((440, 465), t_line2, fill=(138, 75, 92), font=get_font(38, bold=True))
+        draw.rounded_rectangle([430, 510, 830, 570], radius=12, fill=(245, 243, 245, 255))
         words = synopsis.split()
         lines, curr = [], ""
         for w in words:
-            if len(curr + " " + w) < 65: curr += " " + w
+            if len(curr + " " + w) < 55: curr += " " + w
             else: lines.append(curr.strip()); curr = w
         if curr: lines.append(curr.strip())
 
-        sy = box_y + 102
+        sy = 522
         for line in lines[:2]:
-            draw.text((705, sy), line, fill=(160, 160, 160), font=get_font(10, bold=False))
+            draw.text((445, sy), line, fill=(80, 75, 80), font=get_font(9, bold=False))
             sy += 14
+
+        draw.rounded_rectangle([430, 590, 580, 630], radius=20, fill=(138, 75, 92))
+        draw.text((455, 602), "WATCH NOW", fill=(255, 255, 255), font=get_font(11, bold=True))
+        draw.ellipse([540, 598, 568, 622], fill=(255, 255, 255, 50))
+        draw.text((551, 603), "▶", fill=(255, 255, 255), font=get_font(10, bold=True))
+        draw.text((1120, 625), f"•  {branding}", fill=(138, 75, 92), font=get_font(10, bold=True))
             
 # ------------------------ #
 # Don't Remove My Credits
@@ -3200,24 +3229,44 @@ def generate_custom_media_card(poster_bytes, portrait_bytes_list, title, genres,
 # Support : @Coders_Grp 
 # ------------------------ #
     
-    elif s_upper == "DARKM":
-        canvas = Image.new("RGBA", (target_w, target_h), (35, 10, 25, 255))
-        art_right = ImageOps.fit(raw_art, (620, target_h), method=Image.Resampling.LANCZOS)
-        canvas.paste(art_right, (660, 0))
+        elif s_upper == "DARKM":
+        canvas = Image.new("RGBA", (target_w, target_h), (255, 255, 255, 255))
         draw = ImageDraw.Draw(canvas)
-        draw.text((60, 45), "WEBTOON DARK MANGA", fill=(255, 150, 150), font=get_font(24, bold=True))
-        draw.text((90, 130), title.upper()[:20], fill=(255, 255, 255), font=get_font(38, bold=True))
-        words = synopsis.split()
-        lines, curr = [], ""
-        for w in words:
-            if len(curr + " " + w) < 55: curr += " " + w
-            else: lines.append(curr.strip()); curr = w
-        if curr: lines.append(curr.strip())
-        sy = 330
-        for line in lines[:6]:
-            draw.text((60, sy), line, fill=(200, 190, 200), font=get_font(13, bold=False))
-            sy += 20
-    
+        draw.polygon([(900, 0), (1280, 0), (1280, 150)], fill=(225, 20, 30))
+        draw.polygon([(850, 0), (1050, 0), (950, 120)], fill=(220, 225, 235))
+        draw.rectangle([60, 410, 72, 590], fill=(225, 20, 30))
+        for dx in range(90, 140, 15):
+            for dy in range(410, 460, 15):
+                draw.ellipse([dx, dy, dx + 3, dy + 3], fill=(120, 120, 130))
+
+        draw.text((95, 470), f"Anime • {extra_meta.get('year', '2024')}", fill=(100, 100, 110), font=get_font(10, bold=False))
+        
+        title_words = title.upper().split()
+        t1 = title_words[0] if title_words else "SOLO"
+        t2 = " ".join(title_words[1:]) if len(title_words) > 1 else "LEVELING"
+        
+        draw.text((95, 495), t1, fill=(225, 20, 30), font=get_font(38, bold=True))
+        draw.text((95, 538), t2, fill=(110, 110, 120), font=get_font(38, bold=True))
+        draw.line([(95, 600), (300, 600)], fill=(200, 200, 210), width=1)
+        draw.text((95, 615), f"—  {', '.join(genres[:2]).upper() if genres else 'ACTION • ADVENTURE'}", fill=(100, 100, 110), font=get_font(10, bold=True))
+        draw.rounded_rectangle([95, 655, 220, 695], radius=20, fill=(225, 20, 30))
+        draw.text((120, 668), "WATCH", fill=(255, 255, 255), font=get_font(11, bold=True))
+        draw.rectangle([240, 665, 243, 685], fill=(0, 180, 220))
+        draw.text((255, 668), status_str.capitalize() if status_str else "Finished", fill=(80, 80, 90), font=get_font(11, bold=True))
+        draw.text((260, 560), "AERO_UNITY", fill=(240, 240, 242), font=get_font(85, bold=True))
+
+        try:
+            raw_p = Image.open(io.BytesIO(portrait_bytes_list[0])).convert("RGBA") if portrait_bytes_list else raw_art
+            p_crop = ImageOps.fit(raw_p, (340, 200), method=Image.Resampling.LANCZOS)
+            
+            mask = Image.new("L", (340, 200), 0)
+            mask_draw = ImageDraw.Draw(mask)
+            mask_draw.rounded_rectangle([0, 0, 340, 200], radius=16, fill=255)
+            
+            canvas.paste(p_crop, (850, 485), mask)
+        except Exception:
+            pass
+
 # ------------------------ #
 # Don't Remove My Credits
 # Owner: @Mr_Mohammed_29
