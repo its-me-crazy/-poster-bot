@@ -2266,6 +2266,12 @@ def movie_poster_handler(message):
 # Updates: @Aero_Unity 
 # Support : @Coders_Grp 
 # ------------------------ #
+# ------------------------ #
+# Don't Remove My Credits
+# Owner: @Mr_Mohammed_29
+# Updates: @Aero_Unity 
+# Support : @Coders_Grp 
+# ------------------------ #
 
 @bot.message_handler(commands=['manga'])
 def manga_command_handler(message):
