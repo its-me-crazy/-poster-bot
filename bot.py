@@ -2917,8 +2917,7 @@ def generate_custom_media_card(poster_bytes, portrait_bytes_list, title, genres,
     
     elif s_upper == "LIGHTM":
         canvas = Image.new("RGBA", (target_w, target_h), (250, 250, 252, 255))
-        draw = ImageDraw.Draw(canvas)
-        
+        draw = ImageDraw.Draw(canvas) 
         draw.text((60, 35), "AERO_UNITY", fill=(10, 10, 15), font=get_font(18, bold=True))
         
         nav_items = ["OVERVIEW", "CHARACTERS", "EPISODES"]
@@ -2927,12 +2926,10 @@ def generate_custom_media_card(poster_bytes, portrait_bytes_list, title, genres,
             draw.text((nx, 40), nav, fill=(120, 120, 130), font=get_font(10, bold=False))
             nx += 110
             
-        lightm_label = "Manga" if ("MANGA" in str(extra_meta).upper() or "M" in s_upper or style_type in ["anim", "lightm", "netm", "darkm", "modm"]) else "Anime"
-        
+        lightm_label = "Manga" if ("MANGA" in str(extra_meta).upper() or "M" in s_upper or style_type in ["anim", "lightm", "netm", "darkm", "modm"]) else "Anime"      
         draw.rounded_rectangle([1140, 30, 1220, 58], radius=14, outline=(180, 180, 190), width=2)
         draw.text((1158, 38), lightm_label, fill=(100, 100, 110), font=get_font(11, bold=False))
         draw.text((60, 140), studio_name[:20], fill=(120, 120, 130), font=get_font(11, bold=True))
-
         
         title_words = title.upper().split()
         ty = 165
@@ -3201,7 +3198,9 @@ def generate_custom_media_card(poster_bytes, portrait_bytes_list, title, genres,
         draw.ellipse([900, 20, 960, 80], fill=(138, 75, 92, 255))
 
         try:
-            raw_p = Image.open(io.BytesIO(portrait_bytes_list[0])).convert("RGBA") if portrait_bytes_list else raw_art
+            img_idx = extra_meta.get("current_index", 0) if extra_meta else 0
+            selected_bytes = portrait_bytes_list[img_idx % len(portrait_bytes_list)] if portrait_bytes_list else None
+            raw_p = Image.open(io.BytesIO(selected_bytes)).convert("RGBA") if selected_bytes else raw_art
             p_crop = ImageOps.fit(raw_p, (260, 260), method=Image.Resampling.LANCZOS)
             
             mask = Image.new("L", (260, 260), 0)
@@ -3250,7 +3249,7 @@ def generate_custom_media_card(poster_bytes, portrait_bytes_list, title, genres,
 # Support : @Coders_Grp 
 # ------------------------ #
     
-    elif s_upper == "DARKM":
+   elif s_upper == "DARKM":
         canvas = Image.new("RGBA", (target_w, target_h), (255, 255, 255, 255))
         draw = ImageDraw.Draw(canvas)
         draw.polygon([(900, 0), (1280, 0), (1280, 150)], fill=(225, 20, 30))
@@ -3277,6 +3276,7 @@ def generate_custom_media_card(poster_bytes, portrait_bytes_list, title, genres,
             
         draw.line([(95, 600), (300, 600)], fill=(200, 200, 210), width=1)
         draw.text((95, 615), f"—  {', '.join(genres[:2]).upper() if genres else 'ACTION • ADVENTURE'}", fill=(100, 100, 110), font=get_font(10, bold=True))
+        
         btn_action_label = "READ" if media_type_label == "Manga" else "WATCH"
         draw.rounded_rectangle([95, 655, 220, 695], radius=20, fill=(225, 20, 30))
         draw.text((120, 668), btn_action_label, fill=(255, 255, 255), font=get_font(11, bold=True))
@@ -3285,7 +3285,9 @@ def generate_custom_media_card(poster_bytes, portrait_bytes_list, title, genres,
         draw.text((260, 560), "AERO_UNITY", fill=(240, 240, 242), font=get_font(85, bold=True))
 
         try:
-            raw_p = Image.open(io.BytesIO(portrait_bytes_list[0])).convert("RGBA") if portrait_bytes_list else raw_art
+            img_idx = extra_meta.get("current_index", 0) if extra_meta else 0
+            selected_bytes = portrait_bytes_list[img_idx % len(portrait_bytes_list)] if portrait_bytes_list else None
+            raw_p = Image.open(io.BytesIO(selected_bytes)).convert("RGBA") if selected_bytes else raw_art
             p_crop = ImageOps.fit(raw_p, (340, 200), method=Image.Resampling.LANCZOS)
             
             mask = Image.new("L", (340, 200), 0)
@@ -3295,7 +3297,7 @@ def generate_custom_media_card(poster_bytes, portrait_bytes_list, title, genres,
             canvas.paste(p_crop, (850, 260), mask)
         except Exception:
             pass
-
+            
 # ------------------------ #
 # Don't Remove My Credits
 # Owner: @Mr_Mohammed_29
@@ -3561,7 +3563,10 @@ def send_style_poster_response(message, cmd, query, branding_name):
             "posters": posters if posters else [backdrops[0]],
             "logo_url": logo_url,
             "style_type": cmd,             
-            "branding": branding_name,     
+            "branding": branding_name,
+            "year": year_str,                        
+            "season": extra_metadata.get("season", "Current"),   
+            "episodes": extra_metadata.get("episodes", "12 Episodes"),
             "studio": studio_str,
             "file_ids": {}
         }
@@ -3601,7 +3606,7 @@ def send_style_poster_response(message, cmd, query, branding_name):
         bot.send_photo(
             chat_id=message.chat.id,
             photo=card_io,
-            caption=f"<b>caption_text</b>",
+            caption=caption_text,
             parse_mode="HTML",
             reply_markup=markup
         )
