@@ -3197,7 +3197,8 @@ def generate_custom_media_card(poster_bytes, portrait_bytes_list, title, genres,
 
         try:
             raw_p = Image.open(io.BytesIO(portrait_bytes_list[0])).convert("RGBA") if portrait_bytes_list else raw_art
-            p_crop = ImageOps.fit(raw_p, (260, 260), method=Image.Resampling.LANCZOS)   
+            p_crop = ImageOps.fit(raw_p, (260, 260), method=Image.Resampling.LANCZOS)
+            
             mask = Image.new("L", (260, 260), 0)
             mask_draw = ImageDraw.Draw(mask)
             mask_draw.ellipse([0, 0, 260, 260], fill=255)
@@ -3236,8 +3237,7 @@ def generate_custom_media_card(poster_bytes, portrait_bytes_list, title, genres,
         draw.text((450, 562), btn_label, fill=(255, 255, 255), font=get_font(11, bold=True))
         draw.ellipse([560, 558, 588, 582], fill=(255, 255, 255, 50))
         draw.text((571, 563), "▶", fill=(255, 255, 255), font=get_font(10, bold=True))
-        draw.text((1120, 655), f"•  {branding}", fill=(138, 75, 92), font=get_font(10, bold=True))
-        
+    
 # ------------------------ #
 # Don't Remove My Credits
 # Owner: @Mr_Mohammed_29
@@ -3271,7 +3271,7 @@ def generate_custom_media_card(poster_bytes, portrait_bytes_list, title, genres,
             draw.text((95, 538), t2, fill=(110, 110, 120), font=get_font(38, bold=True))
             
         draw.line([(95, 600), (300, 600)], fill=(200, 200, 210), width=1)
-        draw.text((95, 615), f"—  {', '.join(genres[:2]).upper() if genres else 'ACTION • ADVENTURE'}", fill=(100, 100, 110), font=get_font(10, bold=True))   
+        draw.text((95, 615), f"—  {', '.join(genres[:2]).upper() if genres else 'ACTION • ADVENTURE'}", fill=(100, 100, 110), font=get_font(10, bold=True))
         btn_action_label = "READ" if media_type_label == "Manga" else "WATCH"
         draw.rounded_rectangle([95, 655, 220, 695], radius=20, fill=(225, 20, 30))
         draw.text((120, 668), btn_action_label, fill=(255, 255, 255), font=get_font(11, bold=True))
@@ -3287,7 +3287,7 @@ def generate_custom_media_card(poster_bytes, portrait_bytes_list, title, genres,
             mask_draw = ImageDraw.Draw(mask)
             mask_draw.rounded_rectangle([0, 0, 340, 200], radius=16, fill=255)
             
-            canvas.paste(p_crop, (850, 485), mask)
+            canvas.paste(p_crop, (850, 260), mask)
         except Exception:
             pass
 
@@ -3562,10 +3562,10 @@ def send_style_poster_response(message, cmd, query, branding_name):
         }
     
         media_title = title or "Unknown Title"
-        media_year = extra_metadata.get("year", "2024") if 'extra_metadata' in locals() else "2024"
-        media_studio = studio_str if 'studio_str' in locals() else "Official Studio"
-        media_season = extra_metadata.get("season", "Current") if 'extra_metadata' in locals() else "Current"
-        media_episodes = extra_metadata.get("episodes", "12 Episodes") if 'extra_metadata' in locals() else "12 Episodes"
+        media_year = extra_metadata.get("year", "2024")
+        media_studio = studio_str
+        media_season = extra_metadata.get("season", "Current")
+        media_episodes = extra_metadata.get("episodes", "12 Episodes")
 
         caption_text = (
             f"<b>{html.escape(str(media_title))}</b>\n\n"
@@ -3575,7 +3575,7 @@ def send_style_poster_response(message, cmd, query, branding_name):
             f"📺 <b>Episode:</b> {media_episodes}\n\n"
             f"<b>Powered By @Aero_Unity</b>"
         )
-
+        
         markup = InlineKeyboardMarkup()
         prev_idx = (current_index - 1) % total_pages
         next_idx = (current_index + 1) % total_pages
@@ -3596,7 +3596,7 @@ def send_style_poster_response(message, cmd, query, branding_name):
         bot.send_photo(
             chat_id=message.chat.id,
             photo=card_io,
-            caption=f"<b>{html.escape(title)}</b>",
+            caption=f"<b>caption_text</b>",
             parse_mode="HTML",
             reply_markup=markup
         )
