@@ -2677,7 +2677,6 @@ def generate_custom_media_card(poster_bytes, portrait_bytes_list, title, genres,
             text_w = len(display_title) * 28
             
         box_right = min(780, max(280, 60 + text_w + 40))
-        draw.rectangle([50, 325, box_right, 400], fill=(15, 15, 20, 240))
         draw.text((60, 340), display_title, fill=(255, 255, 255), font=font_net_title)
         rel_year = extra_meta.get("year", "2024") if extra_meta else "2024"
         meta_str = f"{match_pct}% Match    {rel_year}    TV-14    {extra_meta.get('episodes', '12')} Episodes    HD"
@@ -2736,7 +2735,6 @@ def generate_custom_media_card(poster_bytes, portrait_bytes_list, title, genres,
         canvas.alpha_composite(vignette)
         draw = ImageDraw.Draw(canvas)
         draw.text((60, 40), "N [M]", fill=(229, 9, 20), font=get_font(48, bold=True))
-        draw.rectangle([50, 325, 780, 400], fill=(15, 15, 20, 240))
         draw.text((60, 340), title.upper()[:25], fill=(255, 255, 255), font=get_font(48, bold=True))
         rel_year = extra_meta.get("year", "2024") if extra_meta else "2024"
         meta_str = f"{match_pct}% Match    {rel_year}    MANGA    {extra_meta.get('chapters', '120+')} Chapters"
