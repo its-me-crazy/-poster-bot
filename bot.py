@@ -611,17 +611,21 @@ def handle_all_callbacks(call):
 
         total_pages = len(artworks)
         current_index = target_index % total_pages
-        style_type = data.get("style_type", "ani") # Preserves the exact style!
+        style_type = data.get("style_type", "ani")
+
+        media_title = data.get('title', 'Unknown Title')
+        media_year = data.get('year', '2024')
+        media_studio = data.get('studio', 'Official Studio')
+        media_season = data.get('season', 'Current')
+        media_episodes = data.get('episodes', '12 Episodes')
 
         caption_text = (
-            f"<b>{html.escape(data.get('title', 'Unknown'))}</b> ❞\n\n"
-            f"» <b>Type:</b> {data.get('type', 'ANIME')}\n"
-            f"» <b>Average Rating:</b> {data.get('rating', '8.4')}\n"
-            f"» <b>Status:</b> {data.get('status', 'RELEASING')}\n"
-            f"» <b>Chapters/Episodes:</b> {data.get('chapters', 'N/A')}\n"
-            f"» <b>Genres:</b> {html.escape(data.get('genres', 'N/A'))}\n\n"
-            f" <u><b>SYNOPSIS</b></u>\n"
-            f"<b>➔</b> <i>{html.escape(data.get('synopsis', 'No synopsis')[:400])}...</i> ❞"
+            f"<b>{html.escape(str(media_title))}</b>\n\n"
+            f"📅 <b>Year:</b> {media_year}\n"
+            f"🏢 <b>Studio:</b> {html.escape(str(media_studio))}\n"
+            f"☀️ <b>Season:</b> {media_season}\n"
+            f"📺 <b>Episode:</b> {media_episodes}\n\n"
+            f"<b>Powered By @Aero_Unity</b>"
         )
 
         markup = InlineKeyboardMarkup()
@@ -2923,9 +2927,12 @@ def generate_custom_media_card(poster_bytes, portrait_bytes_list, title, genres,
             draw.text((nx, 40), nav, fill=(120, 120, 130), font=get_font(10, bold=False))
             nx += 110
             
-        draw.rounded_rectangle([1150, 30, 1220, 58], radius=14, outline=(180, 180, 190), width=2)
-        draw.text((1170, 38), "Anime", fill=(100, 100, 110), font=get_font(11, bold=False))
+        lightm_label = "Manga" if ("MANGA" in str(extra_meta).upper() or "M" in s_upper or style_type in ["anim", "lightm", "netm", "darkm", "modm"]) else "Anime"
+        
+        draw.rounded_rectangle([1140, 30, 1220, 58], radius=14, outline=(180, 180, 190), width=2)
+        draw.text((1158, 38), lightm_label, fill=(100, 100, 110), font=get_font(11, bold=False))
         draw.text((60, 140), studio_name[:20], fill=(120, 120, 130), font=get_font(11, bold=True))
+
         
         title_words = title.upper().split()
         ty = 165
