@@ -2682,7 +2682,8 @@ def generate_custom_media_card(poster_bytes, portrait_bytes_list, title, genres,
         box_right = min(780, max(280, 60 + text_w + 40))
         draw.text((60, 340), display_title, fill=(255, 255, 255), font=font_net_title)
         rel_year = extra_meta.get("year", "2024") if extra_meta else "2024"
-        meta_str = f"{match_pct}% Match    {rel_year}    TV-14    {extra_meta.get('episodes', '12')} Episodes    HD"
+        ep_display_str = extra_meta.get('episodes', '12 Episodes')
+        meta_str = f"{match_pct}% Match    {rel_year}    TV-14    {ep_display_str}    HD"
         draw.text((60, 415), meta_str, fill=(70, 211, 105), font=get_font(14, bold=True))
         draw.text((60, 445), " • ".join(genres[:4]) if genres else "Drama", fill=(180, 180, 180), font=get_font(13, bold=False))
         words = synopsis.split()
@@ -2702,8 +2703,8 @@ def generate_custom_media_card(poster_bytes, portrait_bytes_list, title, genres,
         draw.text((1180, 640), f"★ {rating_val}", fill=(255, 215, 0), font=get_font(18, bold=True))
         card_x, card_y = 580, 430
         draw.rounded_rectangle([card_x, card_y, card_x + 310, card_y + 95], radius=12, fill=(25, 25, 30, 220))
-        draw.text((595, card_y + 15), f"Episode - {extra_meta.get('ep_num', '12')}", fill=(255, 255, 255), font=get_font(15, bold=True))
-        draw.text((595, card_y + 38), f"Season - {rel_year}", fill=(190, 190, 190), font=get_font(10, bold=False))
+        draw.text((595, card_y + 15), f"Episodes: {extra_meta.get('ep_num', '12')}", fill=(255, 255, 255), font=get_font(15, bold=True))
+        draw.text((595, card_y + 38), f"{extra_meta.get('season', 'Season 1')}", fill=(190, 190, 190), font=get_font(10, bold=False))
         draw.text((595, card_y + 56), "Duration - 24m", fill=(190, 190, 190), font=get_font(10, bold=False))
 
         try:
