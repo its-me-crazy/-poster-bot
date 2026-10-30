@@ -18,7 +18,7 @@ HELP_PAGES = {
         )
     },
     2: {
-        "photo": "https://telegra.ph/file/8e32b8c8bf70e4cf732e7-2fac8b61a642d48960.jpg",
+        "photo": "https://telegra.ph/file/1663af3897c8fd7eccf75-83966f6ebd77f33e5f.jpg",
         "caption": (
             "<b>Netflix Style — 2/8</b>\n"
             "──────────────────────────────\n"
@@ -29,7 +29,7 @@ HELP_PAGES = {
         )
     },
     3: {
-        "photo": "https://telegra.ph/file/819dc99e7a73ad85593a2-a348371954340f1c89.jpg",
+        "photo" : "https://telegra.ph/file/c7d72ecc3710c6da2dcd8-781c8fdfb0c9f0c77d.jpg",
         "caption": (
             "<b>Crunchyroll Style — 3/8</b>\n"
             "──────────────────────────────\n"
@@ -40,7 +40,7 @@ HELP_PAGES = {
         )
     },
     4: {
-        "photo": "https://telegra.ph/file/96ab52559eb70d01cd336-f07404e18b407abaf3.jpg",
+        "photo": "https://telegra.ph/file/dd455b6c52ee48faeade3-c0aa0ee1fc75184b9a.jpg",
         "caption": (
             "<b>Light Simple Style — 4/8</b>\n"
             "──────────────────────────────\n"
