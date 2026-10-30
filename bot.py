@@ -2912,6 +2912,7 @@ def generate_custom_media_card(poster_bytes, portrait_bytes_list, title, genres,
 # Updates: @Aero_Unity 
 # Support : @Coders_Grp 
 # ------------------------ #
+    
     elif s_upper == "LIGHTM":
         canvas = Image.new("RGBA", (target_w, target_h), (250, 250, 252, 255))
         draw = ImageDraw.Draw(canvas)
@@ -3227,12 +3228,13 @@ def generate_custom_media_card(poster_bytes, portrait_bytes_list, title, genres,
             draw.text((445, sy), line, fill=(80, 75, 80), font=get_font(9, bold=False))
             sy += 14
 
-        draw.rounded_rectangle([430, 590, 580, 630], radius=20, fill=(138, 75, 92))
-        draw.text((455, 602), "WATCH NOW", fill=(255, 255, 255), font=get_font(11, bold=True))
-        draw.ellipse([540, 598, 568, 622], fill=(255, 255, 255, 50))
-        draw.text((551, 603), "▶", fill=(255, 255, 255), font=get_font(10, bold=True))
+        btn_label = "READ NOW" if ("MANGA" in str(extra_meta).upper() or style_type == "manga") else "WATCH NOW"
+        draw.rounded_rectangle([430, 590, 600, 630], radius=20, fill=(138, 75, 92))
+        draw.text((450, 602), btn_label, fill=(255, 255, 255), font=get_font(11, bold=True))
+        draw.ellipse([560, 598, 588, 622], fill=(255, 255, 255, 50))
+        draw.text((571, 603), "▶", fill=(255, 255, 255), font=get_font(10, bold=True))
         draw.text((1120, 625), f"•  {branding}", fill=(138, 75, 92), font=get_font(10, bold=True))
-            
+
 # ------------------------ #
 # Don't Remove My Credits
 # Owner: @Mr_Mohammed_29
@@ -3250,7 +3252,8 @@ def generate_custom_media_card(poster_bytes, portrait_bytes_list, title, genres,
             for dy in range(410, 460, 15):
                 draw.ellipse([dx, dy, dx + 3, dy + 3], fill=(120, 120, 130))
 
-        draw.text((95, 470), f"Anime • {extra_meta.get('year', '2024')}", fill=(100, 100, 110), font=get_font(10, bold=False))
+        media_type_label = "Manga" if ("MANGA" in str(extra_meta).upper() or style_type == "manga" or "M" in s_upper) else "Anime"
+        draw.text((95, 470), f"{media_type_label} • {extra_meta.get('year', '2024')}", fill=(100, 100, 110), font=get_font(10, bold=False))
         
         title_words = title.upper().split()
         t1 = title_words[0] if title_words else "SOLO"
@@ -3260,8 +3263,9 @@ def generate_custom_media_card(poster_bytes, portrait_bytes_list, title, genres,
         draw.text((95, 538), t2, fill=(110, 110, 120), font=get_font(38, bold=True))
         draw.line([(95, 600), (300, 600)], fill=(200, 200, 210), width=1)
         draw.text((95, 615), f"—  {', '.join(genres[:2]).upper() if genres else 'ACTION • ADVENTURE'}", fill=(100, 100, 110), font=get_font(10, bold=True))
+        btn_action_label = "READ" if media_type_label == "Manga" else "WATCH"
         draw.rounded_rectangle([95, 655, 220, 695], radius=20, fill=(225, 20, 30))
-        draw.text((120, 668), "WATCH", fill=(255, 255, 255), font=get_font(11, bold=True))
+        draw.text((120, 668), btn_action_label, fill=(255, 255, 255), font=get_font(11, bold=True))
         draw.rectangle([240, 665, 243, 685], fill=(0, 180, 220))
         draw.text((255, 668), status_str.capitalize() if status_str else "Finished", fill=(80, 80, 90), font=get_font(11, bold=True))
         draw.text((260, 560), "AERO_UNITY", fill=(240, 240, 242), font=get_font(85, bold=True))
