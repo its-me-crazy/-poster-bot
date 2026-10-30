@@ -3197,8 +3197,7 @@ def generate_custom_media_card(poster_bytes, portrait_bytes_list, title, genres,
 
         try:
             raw_p = Image.open(io.BytesIO(portrait_bytes_list[0])).convert("RGBA") if portrait_bytes_list else raw_art
-            p_crop = ImageOps.fit(raw_p, (260, 260), method=Image.Resampling.LANCZOS)
-            
+            p_crop = ImageOps.fit(raw_p, (260, 260), method=Image.Resampling.LANCZOS)   
             mask = Image.new("L", (260, 260), 0)
             mask_draw = ImageDraw.Draw(mask)
             mask_draw.ellipse([0, 0, 260, 260], fill=255)
@@ -3207,15 +3206,19 @@ def generate_custom_media_card(poster_bytes, portrait_bytes_list, title, genres,
         except Exception:
             pass
 
-        draw.text((440, 120), "SOLO", fill=(50, 40, 45), font=get_font(38, bold=True))
-        
         title_words = title.upper().split()
-        t_line1 = title_words[0] if title_words else "SOLO"
-        t_line2 = " ".join(title_words[1:]) if len(title_words) > 1 else "LEVELING"
+        if len(title_words) >= 2:
+            t_line1 = title_words[0]
+            t_line2 = " ".join(title_words[1:])
+        else:
+            t_line1 = title_words[0] if title_words else "MEDIA"
+            t_line2 = ""
         
-        draw.text((440, 420), t_line1, fill=(50, 40, 45), font=get_font(38, bold=True))
-        draw.text((440, 465), t_line2, fill=(138, 75, 92), font=get_font(38, bold=True))
-        draw.rounded_rectangle([430, 510, 830, 570], radius=12, fill=(245, 243, 245, 255))
+        draw.text((440, 360 if not t_line2 else 340), t_line1, fill=(50, 40, 45), font=get_font(38, bold=True))
+        if t_line2:
+            draw.text((440, 410), t_line2, fill=(138, 75, 92), font=get_font(38, bold=True))
+
+        draw.rounded_rectangle([430, 470, 830, 530], radius=12, fill=(245, 243, 245, 255))
         words = synopsis.split()
         lines, curr = [], ""
         for w in words:
@@ -3223,18 +3226,18 @@ def generate_custom_media_card(poster_bytes, portrait_bytes_list, title, genres,
             else: lines.append(curr.strip()); curr = w
         if curr: lines.append(curr.strip())
 
-        sy = 522
+        sy = 482
         for line in lines[:2]:
             draw.text((445, sy), line, fill=(80, 75, 80), font=get_font(9, bold=False))
             sy += 14
 
         btn_label = "READ NOW" if ("MANGA" in str(extra_meta).upper() or style_type == "manga") else "WATCH NOW"
-        draw.rounded_rectangle([430, 590, 600, 630], radius=20, fill=(138, 75, 92))
-        draw.text((450, 602), btn_label, fill=(255, 255, 255), font=get_font(11, bold=True))
-        draw.ellipse([560, 598, 588, 622], fill=(255, 255, 255, 50))
-        draw.text((571, 603), "▶", fill=(255, 255, 255), font=get_font(10, bold=True))
-        draw.text((1120, 625), f"•  {branding}", fill=(138, 75, 92), font=get_font(10, bold=True))
-
+        draw.rounded_rectangle([430, 550, 600, 590], radius=20, fill=(138, 75, 92))
+        draw.text((450, 562), btn_label, fill=(255, 255, 255), font=get_font(11, bold=True))
+        draw.ellipse([560, 558, 588, 582], fill=(255, 255, 255, 50))
+        draw.text((571, 563), "▶", fill=(255, 255, 255), font=get_font(10, bold=True))
+        draw.text((1120, 655), f"•  {branding}", fill=(138, 75, 92), font=get_font(10, bold=True))
+        
 # ------------------------ #
 # Don't Remove My Credits
 # Owner: @Mr_Mohammed_29
@@ -3256,13 +3259,19 @@ def generate_custom_media_card(poster_bytes, portrait_bytes_list, title, genres,
         draw.text((95, 470), f"{media_type_label} • {extra_meta.get('year', '2024')}", fill=(100, 100, 110), font=get_font(10, bold=False))
         
         title_words = title.upper().split()
-        t1 = title_words[0] if title_words else "SOLO"
-        t2 = " ".join(title_words[1:]) if len(title_words) > 1 else "LEVELING"
+        if len(title_words) >= 2:
+            t1 = title_words[0]
+            t2 = " ".join(title_words[1:])
+        else:
+            t1 = title_words[0] if title_words else "MEDIA"
+            t2 = ""
         
         draw.text((95, 495), t1, fill=(225, 20, 30), font=get_font(38, bold=True))
-        draw.text((95, 538), t2, fill=(110, 110, 120), font=get_font(38, bold=True))
+        if t2:
+            draw.text((95, 538), t2, fill=(110, 110, 120), font=get_font(38, bold=True))
+            
         draw.line([(95, 600), (300, 600)], fill=(200, 200, 210), width=1)
-        draw.text((95, 615), f"—  {', '.join(genres[:2]).upper() if genres else 'ACTION • ADVENTURE'}", fill=(100, 100, 110), font=get_font(10, bold=True))
+        draw.text((95, 615), f"—  {', '.join(genres[:2]).upper() if genres else 'ACTION • ADVENTURE'}", fill=(100, 100, 110), font=get_font(10, bold=True))   
         btn_action_label = "READ" if media_type_label == "Manga" else "WATCH"
         draw.rounded_rectangle([95, 655, 220, 695], radius=20, fill=(225, 20, 30))
         draw.text((120, 668), btn_action_label, fill=(255, 255, 255), font=get_font(11, bold=True))
