@@ -3609,7 +3609,7 @@ def send_style_poster_response(message, cmd, query, branding_name):
             f"<b>✦ Yᴇᴀʀ : {media_year}</b>\n"
             f"<b>✦ Sᴛᴜᴅɪᴏ : {html.escape(str(media_studio))}</b>\n"
             f"<b>✦ Sᴇᴀsᴏɴ : {media_season}</b>\n"
-            f"<b>✦ Eᴘɪsᴏᴅᴇs : {media_episodes}<b>\n\n"
+            f"<b>✦ Eᴘɪsᴏᴅᴇs : {media_episodes}</b>\n\n"
             f"<b>››Pᴏᴡᴇʀᴇᴅ Bʏ : <a href=\"https://t.me/Aero_Unity\">Aᴇʀᴏ Uɴɪᴛʏ</a></b>"
         )
         
