@@ -620,12 +620,12 @@ def handle_all_callbacks(call):
         media_episodes = data.get('episodes', '12 Episodes')
 
         caption_text = (
-            f"<b>{html.escape(str(media_title))}</b>\n\n"
-            f"📅 <b>Year:</b> {media_year}\n"
-            f"🏢 <b>Studio:</b> {html.escape(str(media_studio))}\n"
-            f"☀️ <b>Season:</b> {media_season}\n"
-            f"📺 <b>Episode:</b> {media_episodes}\n\n"
-            f"<b>Powered By @Aero_Unity</b>"
+            f"✦ <b>Tɪᴛʟᴇ : {html.escape(str(media_title))}</b>\n"
+            f"✦ <b>Tɪᴛʟᴇ : {media_year}</b>\n"
+            f"✦ <b>Sᴛᴜᴅɪᴏ : {html.escape(str(media_studio))}</b>\n"
+            f"✦ <b>Sᴇᴀsᴏɴ : {media_season}</b>\n"
+            f"✦ <b>Eᴘɪsᴏᴅᴇ : {media_episodes}</b>\n\n"
+            f"››<b>Pᴏᴡᴇʀᴇᴅ Bʏ : <a href=\"https://t.me/Aero_Unity\">Aᴇʀᴏ Uɴɪᴛʏ</a></b>"
         )
 
         markup = InlineKeyboardMarkup()
@@ -761,7 +761,6 @@ def handle_all_callbacks(call):
                 pass
             
             welcome_text = (
-                "✅ <b>VᴇʀɪfɪᴄᴀᴛɪᴏN Sᴜᴄᴄᴇssғᴜʟ</b>\n\n"
                 "<b>Wᴇʟᴄᴏᴍᴇ Bᴀᴄᴋ 𝗌𝖾𝗇𝖽 𝗆𝖾 𝖺𝗇𝗒 𝗍𝗂𝗍𝗅𝖾 (𝗆𝗈𝗏𝗂𝖾𝗌, 𝗌𝖾𝗋𝗂𝖾𝗌, 𝖺𝗇𝗂𝗆𝖾, 𝗄-𝖽𝗋𝖺𝗆𝖺𝗌, 𝖾𝗍𝖼.), "
                 "to 𝗀𝖾𝗇𝖾𝗋𝖺𝗍𝖾 𝗍𝗁𝖾 𝗉𝗈𝗌𝗍𝖾𝗋 𝗅𝖺𝗒𝗈𝗎𝗍 𝖿𝗈𝗋 𝗒𝗈𝗎</b>"
             )
@@ -781,7 +780,7 @@ def handle_all_callbacks(call):
             "⍟───[ <b>ᴍʏ ᴅᴇᴛᴀɪʟꜱ</b> ]───⍟\n\n"
             "‣ <b>ᴍʏ ɴᴀᴍᴇ : <a href=\"https://t.me/Aero_Poster_bot\">ᴀᴇʀᴏ ᴘᴏsᴛᴇʀ ʙᴏᴛ</a></b>\n"
             "‣ <b>ᴅᴇᴠᴇʟᴏᴘᴇʀ : <a href=\"https://t.me/Mr_Mohammed_29\"><b>ᴍᴏʜᴀᴍᴍᴇᴅ</b></a></b>\n"
-            "‣ <b>ʟɪʙʀᴀʀʏ : ᴘʏʀᴏɢʀᴀᴍ / ᴛᴇʟᴇʙᴏᴛ</b>\n"
+            "‣ <b>ʟɪʙʀᴀʀʏ : ᴘʏʀᴏɢʀᴀᴍ, ᴛᴇʟᴇʙᴏᴛ</b>\n"
             "‣ <b>ʟᴀɴɢᴜᴀɢᴇ : <a href=\"https://www.python.org/download/releases/3.0/\">ᴘʏᴛʜᴏɴ 𝟹</a></b>\n"
             "‣ <b>ʙᴏᴛ sᴇʀᴠᴇʀ : <a href=\"https://t.me/Aero_Unity\"><b>ᴀᴇʀᴏ ᴜɴɪᴛʏ</b></a></b>\n"
             "‣ <b>ʙᴜɪʟᴅ sᴛᴀᴛᴜs : ᴠ3.0 [sᴛᴀʙʟᴇ] </b>"
@@ -885,10 +884,10 @@ def handle_trending_selection(call):
         poster_url = f"https://image.tmdb.org/t/p/w500{poster_path}" if poster_path else None
 
         caption_lines = [
-            f"• 🎬 <b>{html.escape(title)}</b> [{year}]",
-            f"• 🏛️ <b>Type:</b> {media_type}",
-            f"• ⭐ <b>Rating:</b> {rating}\n",
-            f"• 📖 <b>Storyline:</b>\n<i>{html.escape(overview)}</i>"
+            f"✦ <b>{html.escape(title)}</b> [{year}]",
+            f"✦ <b>Tʏᴘᴇ:</b> {media_type}",
+            f"✦ <b>Rᴀᴛɪɴɢs:</b> {rating}\n",
+            f"✦ <b>Sᴛᴏʀʏʟɪɴᴇ:</b>\n<i>{html.escape(overview)}</i>"
         ]
         caption_text = "\n".join(caption_lines)
 
@@ -1307,7 +1306,7 @@ def handle_airing_command(message):
             hours, rem = divmod(rem, 3600)
             mins, _ = divmod(rem, 60)
             time_str = f"{days}d {hours}h {mins}m" if days > 0 else f"{hours}h {mins}m"
-            airing_status_str = f"📡 Episode {ep_num} ᴀɪʀs ɪɴ {time_str}"
+            airing_status_str = f"Eᴘɪsᴏᴅᴇ {ep_num} ᴀɪʀs ɪɴ {time_str}"
             ep_display = ep_num
 
         elif tmdb_next_ep and isinstance(tmdb_next_ep, dict):
@@ -1318,7 +1317,7 @@ def handle_airing_command(message):
 
         elif is_requested_future_season or status.upper() in ["NOT_YET_RELEASED", "UPCOMING"]:
             ep_display = "1 (Upcoming)"
-            airing_status_str = "📡 UPCOMING / TO BE ANNOUNCED"
+            airing_status_str = "UPCOMING / TO BE ANNOUNCED"
 
         elif status.upper() in ["RETURNING", "ONGOING", "RELEASING", "CURRENT"]:
             ep_display = "Ongoing"
@@ -1346,11 +1345,11 @@ def handle_airing_command(message):
             title_display += f" (<i>{html.escape(title_native)}</i>)"
 
         airing_text = (
-            f" <b>›› Title :</b> {title_display}\n"
-            f" <b>›› Season :</b> <code>{req_season}</code>\n"
-            f" <b>›› Episode :</b> <code>{ep_display}</code>\n"
-            f" <b>›› Audio :</b> {audio_str}\n"
-            f" <b>›› Next Air :</b> <b>{airing_status_str}</b>"
+            f" <b>✦ Tɪᴛʟᴇ :</b> {title_display}\n"
+            f" <b>✦ Sᴇᴀsᴏɴ :</b> <code>{req_season}</code>\n"
+            f" <b>✦ Eᴘɪsᴏᴅᴇ :</b> <code>{ep_display}</code>\n"
+            f" <b>✦ Aᴜᴅɪᴏ :</b> {audio_str}\n"
+            f" <b>✦ Nᴇxᴛ Aɪʀ : {airing_status_str}</b>"
         )
 
         markup = InlineKeyboardMarkup()
@@ -1678,11 +1677,11 @@ def build_poster_page(search_id, index=0):
         safe_title = html.escape(title)
 
         caption_lines = [
-            f"• <b>Gᴇɴʀᴇ : {genres}</b>",
-            f"• <b>Lᴀɴɢᴜᴀɢᴇ : {language_str}</b>",
-            f"• <b>Rᴇsᴏʟᴜᴛɪᴏɴs : {resolution_str}</b>",
-            f"• <b>Lɪɴᴋ :</b> <a href=\"{landscape_url}\"><b>Dɪʀᴇᴄᴛ Lɪɴᴋ</b></a>",
-            f"• <b>Pᴏʀᴛʀᴀɪᴛ :</b> <a href=\"{portrait_url}\"><b>Cʟɪᴄᴋ Hᴇʀᴇ</b></a>\n",
+            f"✦ <b>Gᴇɴʀᴇ : {genres}</b>",
+            f"✦ <b>Lᴀɴɢᴜᴀɢᴇ : {language_str}</b>",
+            f"✦ <b>Rᴇsᴏʟᴜᴛɪᴏɴs : {resolution_str}</b>",
+            f"✦ <b>Lɪɴᴋ :</b> <a href=\"{landscape_url}\"><b>Dɪʀᴇᴄᴛ Lɪɴᴋ</b></a>",
+            f"✦ <b>Pᴏʀᴛʀᴀɪᴛ :</b> <a href=\"{portrait_url}\"><b>Cʟɪᴄᴋ Hᴇʀᴇ</b></a>\n",
             f"<b>›› Pᴏᴡᴇʀᴇᴅ Bʏ : <a href=\"https://t.me/Aero_Unity\">Aᴇʀᴏ Uɴɪᴛʏ</a></b>"
         ]
 
@@ -2083,14 +2082,14 @@ def handle_report_command(message):
 
     owner_notification = (
         f"📩 <b>New User Report</b>\n\n"
-        f"• <b>From User:</b> {html.escape(message.from_user.first_name)} (<code>{user_id}</code>)\n"
-        f"• <b>Chat ID:</b> <code>{message.chat.id}</code>\n"
-        f"• <b>Report:</b> <i>{html.escape(report_text)}</i>"
+        f"›› <b>Fʀᴏᴍ Usᴇʀ:</b> {html.escape(message.from_user.first_name)} (<code>{user_id}</code>)\n"
+        f"›› <b>Cʜᴀᴛ ID:</b> <code>{message.chat.id}</code>\n"
+        f"›› <b>Rᴇᴘᴏʀᴛ: <i>{html.escape(report_text)}</i></b>"
     )
 
     try:
         bot.send_message(OWNER_ID, owner_notification, parse_mode="HTML")
-        bot.reply_to(message, "✅ <b>Your report has been sent to the developers! Thank you.</b>", parse_mode="HTML")
+        bot.reply_to(message, "✅ <b>Yᴏᴜʀ ʀᴇᴘᴏʀᴛ ʜᴀs ʙᴇᴇɴ sᴇɴᴛ ᴛᴏ ᴛʜᴇ ᴅᴇᴠᴇʟᴏᴘᴇʀ! Tʜᴀɴᴋ ʏᴏᴜ 😊</b>", parse_mode="HTML")
     except Exception:
         bot.reply_to(message, "⚠️ <b>Could not deliver report. Please try again later.</b>", parse_mode="HTML")
 
@@ -2177,12 +2176,12 @@ def movie_poster_handler(message):
     languages = item.get("original_language", "en").upper()
 
     caption = (
-        f"• 🎬 <b>Tɪᴛʟᴇ : {html.escape(title)}</b>\n"
-        f"• 🏛️ <b>Tʏᴘᴇ : </b> {media_type.upper()}\n"
-        f"• 🎭 <b>Gᴇɴʀᴇ : </b> {genres}\n"
-        f"• 🌐 <b>Lᴀɴɢᴜᴀɢᴇ :</b> {languages}\n\n"
-        f"• 🖼️ <b>Bᴀɴɴᴇʀ :</b> <a href='{banner_url}'>Lɪɴᴋ</a>\n"
-        f"• 🖼️ <b>Pᴏsᴛᴇʀ :</b> <a href='{portrait_url}'>Lɪɴᴋ</a>"
+        f"✦ <b>Tɪᴛʟᴇ : {html.escape(title)}</b>\n"
+        f"✦ <b>Tʏᴘᴇ : </b> {media_type.upper()}\n"
+        f"✦ <b>Gᴇɴʀᴇ : </b> {genres}\n"
+        f"✦ <b>Lᴀɴɢᴜᴀɢᴇ :</b> {languages}\n\n"
+        f"✦ <b>Bᴀɴɴᴇʀ :</b> <a href='{banner_url}'>Lɪɴᴋ</a>\n"
+        f"✦ <b>Pᴏsᴛᴇʀ :</b> <a href='{portrait_url}'>Lɪɴᴋ</a>"
     )
 
     markup = InlineKeyboardMarkup()
@@ -2322,7 +2321,7 @@ def manga_command_handler(message):
         total_pages = len(artworks)
 
         caption_text = (
-            f"<b>{html.escape(title)}</b> ❞\n\n"
+            f"››<b>Tɪᴛʟᴇ : {html.escape(title)}</b> ❞\n"
             f"» <b>Tʏᴘᴇ :</b> {media_format}\n"
             f"» <b>Aᴠᴇʀᴀɢᴇ Rᴀᴛɪɴɢ :</b> {rating_pct}\n"
             f"» <b>Sᴛᴀᴛᴜs :</b> {status_str}\n"
@@ -3562,7 +3561,16 @@ def send_style_poster_response(message, cmd, query, branding_name):
             logo_url=logo_url,
             branding=branding_name,
             style_type=cmd,
-            extra_meta=extra_metadata
+            extra_meta={
+                    "media_format": media_format,
+                    "status": status_str,
+                    "vote_average": vote_avg,
+                    "year": year_str,
+                    "season": f"Season {season_number}",
+                    "episodes": f"{ep_count} Episodes",
+                    "ep_num": str(ep_count),      
+                    "chapters": chap_str
+            }
         )
         
         search_id = str(message.message_id)
@@ -3598,12 +3606,12 @@ def send_style_poster_response(message, cmd, query, branding_name):
         media_episodes = extra_metadata.get("episodes", "12 Episodes")
 
         caption_text = (
-            f"<b>{html.escape(str(media_title))}</b>\n\n"
-            f"📅 <b>Year:</b> {media_year}\n"
-            f"🏢 <b>Studio:</b> {html.escape(str(media_studio))}\n"
-            f"☀️ <b>Season:</b> {media_season}\n"
-            f"📺 <b>Episode:</b> {media_episodes}\n\n"
-            f"<b>Powered By @Aero_Unity</b>"
+            f"<b>✦ Tɪᴛʟᴇ : {html.escape(str(media_title))}</b>\n\n"
+            f"<b>✦ Yᴇᴀʀ : {media_year}</b>\n"
+            f"<b>✦ Sᴛᴜᴅɪᴏ : {html.escape(str(media_studio))}</b>\n"
+            f"<b>✦ Sᴇᴀsᴏɴ : {media_season}</b>\n"
+            f"<b>✦ Eᴘɪsᴏᴅᴇs : {media_episodes}<b>\n\n"
+            f"<b>››Pᴏᴡᴇʀᴇᴅ Bʏ : <a href=\"https://t.me/Aero_Unity\">Aᴇʀᴏ Uɴɪᴛʏ</a></b>"
         )
         
         markup = InlineKeyboardMarkup()
