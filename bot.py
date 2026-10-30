@@ -3513,19 +3513,7 @@ def send_style_poster_response(message, cmd, query, branding_name):
             ep_count = 1
 
         chap_str = f"{ep_count * 15}+" if ep_count else "700+"
-
-        extra_metadata = {
-            "studio": studio_str,
-            "status": status_str,
-            "media_format": media_format,
-            "vote_average": vote_avg,
-            "year": year_str,
-            "season": f"Season {season_number}",
-            "episodes": f"{ep_count} Episodes" if ep_count else "12 Episodes",
-            "chapters": chap_str
-        }
-
-
+        
         images = det_res.get("images", {})
         backdrops = [f"https://image.tmdb.org/t/p/original{i['file_path']}" for i in images.get("backdrops", [])[:8]]
         posters = [f"https://image.tmdb.org/t/p/w500{i['file_path']}" for i in images.get("posters", [])[:3]]
@@ -3552,12 +3540,22 @@ def send_style_poster_response(message, cmd, query, branding_name):
         logo_url = get_tmdb_logo_url(item_id, endpoint)
 
         release_date = det_res.get("release_date") or det_res.get("first_air_date") or ""
-        media_year = release_date.split("-")[0] if release_date else "N/A"
-        media_studio = studio_str if studio_str != "N/A" else (det_res.get("production_companies", [{}])[0].get("name", "Unknown"))
+        year_str = release_date.split("-")[0] if release_date else "N/A"
+        studio_str = studio_str if studio_str != "N/A" else (det_res.get("production_companies", [{}])[0].get("name", "Unknown"))
         media_season = f"Season {season_number}"
         media_episodes = f"{ep_count} Episodes"
-        year_str = media_year
-        studio_str = media_studio
+
+        extra_metadata = {
+            "studio": studio_str,
+            "status": status_str,
+            "media_format": media_format,
+            "vote_average": vote_avg,
+            "year": year_str,
+            "season": media_season,
+            "episodes": media_episodes,
+            "ep_num": str(ep_count),
+            "chapters": chap_str
+        }
 
         card_io = generate_custom_media_card(
             poster_bytes=img_bytes,
@@ -3569,16 +3567,7 @@ def send_style_poster_response(message, cmd, query, branding_name):
             logo_url=logo_url,
             branding=branding_name,
             style_type=cmd,
-            extra_meta={
-                    "media_format": media_format,
-                    "status": status_str,
-                    "vote_average": vote_avg,
-                    "year": year_str,
-                    "season": f"Season {season_number}",
-                    "episodes": f"{ep_count} Episodes",
-                    "ep_num": str(ep_count),      
-                    "chapters": chap_str
-            }
+            extra_meta=extra_metadata
         )
         
         search_id = str(message.message_id)
@@ -3601,8 +3590,8 @@ def send_style_poster_response(message, cmd, query, branding_name):
             "style_type": cmd,             
             "branding": branding_name,
             "year": year_str,                        
-            "season": extra_metadata.get("season", "Current"),   
-            "episodes": extra_metadata.get("episodes", "12 Episodes"),
+            "season": media_season,   
+            "episodes": media_episodes,
             "studio": studio_str,
             "file_ids": {}
         }
