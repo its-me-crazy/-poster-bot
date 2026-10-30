@@ -3362,6 +3362,13 @@ def generate_custom_media_card(poster_bytes, portrait_bytes_list, title, genres,
 
 def send_style_poster_response(message, cmd, query, branding_name):
     user_id = message.from_user.id
+    season_number = 1
+    season_match = re.search(r'(?i)\b(?:s|season)\s*0*(\d+)\b', query)
+    if season_match:
+        season_number = int(season_match.group(1))
+        clean_query = re.sub(r'(?i)\b(?:s|season)\s*0*\d+\b', '', query).strip()
+    else:
+        clean_query = query
     
     if message.chat.type == "private" and user_id != OWNER_ID:
         pm_enabled = database.get_global_pm_search()
@@ -3401,7 +3408,7 @@ def send_style_poster_response(message, cmd, query, branding_name):
     
     time.sleep(2)
     
-    encoded_query = requests.utils.quote(query)
+    encoded_query = requests.utils.quote(clean_query)
     search_url = f"https://api.themoviedb.org/3/search/multi?api_key={TMDB_API_KEY}&query={encoded_query}&include_adult=true"
     
     try:
@@ -3492,7 +3499,20 @@ def send_style_poster_response(message, cmd, query, branding_name):
         release_date = item.get("release_date") or item.get("first_air_date") or ""
         year_str = release_date.split("-")[0] if release_date else "2024"
         
-        ep_count = det_res.get("number_of_episodes") or 12
+        ep_count = 12
+        if media_type == "tv":
+            season_url = f"https://api.themoviedb.org/3/tv/{item_id}/season/{season_number}?api_key={TMDB_API_KEY}"
+            try:
+                s_res = session.get(season_url, timeout=4)
+                if s_res.status_code == 200:
+                    ep_count = len(s_res.json().get("episodes", [])) or det_res.get("number_of_episodes", 12)
+                else:
+                    ep_count = det_res.get("number_of_episodes", 12)
+            except Exception:
+                ep_count = det_res.get("number_of_episodes", 12)
+        else:
+            ep_count = 1
+
         chap_str = f"{ep_count * 15}+" if ep_count else "700+"
 
         extra_metadata = {
@@ -3501,9 +3521,11 @@ def send_style_poster_response(message, cmd, query, branding_name):
             "media_format": media_format,
             "vote_average": vote_avg,
             "year": year_str,
+            "season": f"Season {season_number}",
             "episodes": f"{ep_count} Episodes" if ep_count else "12 Episodes",
             "chapters": chap_str
         }
+
 
         images = det_res.get("images", {})
         backdrops = [f"https://image.tmdb.org/t/p/original{i['file_path']}" for i in images.get("backdrops", [])[:8]]
