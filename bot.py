@@ -3551,7 +3551,21 @@ def send_style_poster_response(message, cmd, query, branding_name):
             "studio": studio_str,
             "file_ids": {}
         }
+    
+        media_title = title or "Unknown Title"
+        media_year = extra_meta.get("year") or extra_meta.get("release_date", "2024")[:4] if extra_meta else "2024"
+        media_studio = studio_name or extra_meta.get("studio", "Official Studio")
+        media_season = extra_meta.get("season", "Current")
+        media_episodes = extra_meta.get("episodes") or extra_meta.get("total_episodes", "12")
 
+        caption_text = (
+            f"<b>{html.escape(str(media_title))}</b>\n\n"
+            f"📅 <b>Year:</b> {media_year}\n"
+            f"🏢 <b>Studio:</b> {html.escape(str(media_studio))}\n"
+            f"☀️ <b>Season:</b> {media_season}\n"
+            f"📺 <b>Episode:</b> {media_episodes}\n\n"
+            f"<b>Powered By @Aero_Unity</b>"
+        )
         markup = InlineKeyboardMarkup()
         prev_idx = (current_index - 1) % total_pages
         next_idx = (current_index + 1) % total_pages
