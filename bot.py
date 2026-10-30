@@ -2658,7 +2658,7 @@ def generate_custom_media_card(poster_bytes, portrait_bytes_list, title, genres,
 # Support : @Coders_Grp 
 # ------------------------ #
     
-        elif s_upper == "NET":
+    elif s_upper == "NET":
         canvas = base_backdrop.copy()
         vignette = Image.new("RGBA", (target_w, target_h), (0, 0, 0, 0))
         v_draw = ImageDraw.Draw(vignette)
