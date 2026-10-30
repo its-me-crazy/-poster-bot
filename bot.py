@@ -3550,6 +3550,14 @@ def send_style_poster_response(message, cmd, query, branding_name):
 
         logo_url = get_tmdb_logo_url(item_id, endpoint)
 
+        release_date = det_res.get("release_date") or det_res.get("first_air_date") or ""
+        media_year = release_date.split("-")[0] if release_date else "N/A"
+        media_studio = studio_str if studio_str != "N/A" else (det_res.get("production_companies", [{}])[0].get("name", "Unknown"))
+        media_season = f"Season {season_number}"
+        media_episodes = f"{ep_count} Episodes"
+        year_str = media_year
+        studio_str = media_studio
+
         card_io = generate_custom_media_card(
             poster_bytes=img_bytes,
             portrait_bytes_list=p_bytes_list,
