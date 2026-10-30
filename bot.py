@@ -3247,7 +3247,7 @@ def generate_custom_media_card(poster_bytes, portrait_bytes_list, title, genres,
 # Support : @Coders_Grp 
 # ------------------------ #
     
-   elif s_upper == "DARKM":
+    elif s_upper == "DARKM":
         canvas = Image.new("RGBA", (target_w, target_h), (255, 255, 255, 255))
         draw = ImageDraw.Draw(canvas)
         draw.polygon([(900, 0), (1280, 0), (1280, 150)], fill=(225, 20, 30))
