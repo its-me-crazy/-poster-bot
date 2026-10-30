@@ -29,7 +29,7 @@ HELP_PAGES = {
         )
     },
     3: {
-        "photo" : "https://telegra.ph/file/c7d72ecc3710c6da2dcd8-781c8fdfb0c9f0c77d.jpg",
+        "photo" : "https://telegra.ph/file/8f386dfda147f6a9a5f01-77d260a475f7d1e42b.jpg",
         "caption": (
             "<b>Crunchyroll Style — 3/8</b>\n"
             "──────────────────────────────\n"
@@ -1345,7 +1345,7 @@ def handle_airing_command(message):
             title_display += f" (<i>{html.escape(title_native)}</i>)"
 
         airing_text = (
-            f" <b>✦ Tɪᴛʟᴇ :</b> {title_display}\n"
+            f" <b>✦ Tɪᴛʟᴇ : {title_display}</b>\n"
             f" <b>✦ Sᴇᴀsᴏɴ :</b> <code>{req_season}</code>\n"
             f" <b>✦ Eᴘɪsᴏᴅᴇ :</b> <code>{ep_display}</code>\n"
             f" <b>✦ Aᴜᴅɪᴏ :</b> {audio_str}\n"
@@ -2179,7 +2179,7 @@ def movie_poster_handler(message):
         f"✦ <b>Tɪᴛʟᴇ : {html.escape(title)}</b>\n"
         f"✦ <b>Tʏᴘᴇ : </b> {media_type.upper()}\n"
         f"✦ <b>Gᴇɴʀᴇ : </b> {genres}\n"
-        f"✦ <b>Lᴀɴɢᴜᴀɢᴇ :</b> {languages}\n\n"
+        f"✦ <b>Lᴀɴɢᴜᴀɢᴇ :</b> {languages}\n"
         f"✦ <b>Bᴀɴɴᴇʀ :</b> <a href='{banner_url}'>Lɪɴᴋ</a>\n"
         f"✦ <b>Pᴏsᴛᴇʀ :</b> <a href='{portrait_url}'>Lɪɴᴋ</a>"
     )
@@ -3613,7 +3613,7 @@ def send_style_poster_response(message, cmd, query, branding_name):
         media_episodes = extra_metadata.get("episodes", "12 Episodes")
 
         caption_text = (
-            f"<b>✦ Tɪᴛʟᴇ : {html.escape(str(media_title))}</b>\n\n"
+            f"<b>✦ Tɪᴛʟᴇ : {html.escape(str(media_title))}</b>\n"
             f"<b>✦ Yᴇᴀʀ : {media_year}</b>\n"
             f"<b>✦ Sᴛᴜᴅɪᴏ : {html.escape(str(media_studio))}</b>\n"
             f"<b>✦ Sᴇᴀsᴏɴ : {media_season}</b>\n"
