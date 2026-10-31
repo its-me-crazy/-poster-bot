@@ -715,9 +715,9 @@ def handle_all_callbacks(call):
    
             try:
                 bot.answer_callback_query(call.id)
-            except Exception:
-                pass
-            return
+        except Exception:
+            pass
+        return
 
     if call.data.startswith("tr_select_"):
         try:
