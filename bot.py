@@ -18,7 +18,7 @@ HELP_PAGES = {
         )
     },
     2: {
-        "photo": "https://telegra.ph/file/1663af3897c8fd7eccf75-83966f6ebd77f33e5f.jpg",
+        "photo": "https://telegra.ph/file/7d5b28e2e1fa20320c55f-65e39dfa0e2eb15ea8.jpg",
         "caption": (
             "<b>Netflix Style — 2/8</b>\n"
             "──────────────────────────────\n"
@@ -51,7 +51,7 @@ HELP_PAGES = {
         )
     },
     5: {
-        "photo": "https://graph.org/file/2590b3f90fa2b91f80f2b-98594c5f50d2916a5d.jpg",
+        "photo": "https://telegra.ph/file/5453059f098bde2eb2dba-8214bf512d693fdcab.jpg",
         "caption": (
             "<b>Dark Simple Style — 5/8</b>\n"
             "──────────────────────────────\n"
