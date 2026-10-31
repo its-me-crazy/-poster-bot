@@ -675,49 +675,49 @@ def handle_all_callbacks(call):
                 except ValueError:
                     raw_rating = 8.4
 
-        card_io = generate_custom_media_card(
-            poster_bytes=img_bytes,
-            portrait_bytes_list=p_bytes_list,
-            title=data.get("title", "Unknown"),
-            genres=genres_list,
-            synopsis=data.get("synopsis", ""),
-            rating_val=raw_rating,
-            logo_url=data.get("logo_url"),
-            branding=data.get("branding", "@Aero_Unity"),
-            style_type=style_type, 
-            extra_meta={
-                "media_format": data.get("type", "ANIME").upper(),
-                "status": data.get("status", "RELEASING").upper(),
-                "vote_average": raw_rating,
-                "year": data.get("year", "2024"),
-                "season": data.get("season", "Season 1"),
-                "episodes": data.get("episodes", "12 Episodes"),
-                "ep_num": data.get("episodes", "12").split()[0],
-                "chapters": data.get("chapters", "N/A"),
-                "studio": data.get("studio", "N/A")
-            }
-        )
+                card_io = generate_custom_media_card(
+                    poster_bytes=img_bytes,
+                    portrait_bytes_list=p_bytes_list,
+                    title=data.get("title", "Unknown"),
+                    genres=genres_list,
+                    synopsis=data.get("synopsis", ""),
+                    rating_val=raw_rating,
+                    logo_url=data.get("logo_url"),
+                    branding=data.get("branding", "@Aero_Unity"),
+                    style_type=style_type, 
+                    extra_meta={
+                        "media_format": data.get("type", "ANIME").upper(),
+                        "status": data.get("status", "RELEASING").upper(),
+                        "vote_average": raw_rating,
+                        "year": data.get("year", "2024"),
+                        "season": data.get("season", "Season 1"),
+                        "episodes": data.get("episodes", "12 Episodes"),
+                        "ep_num": data.get("episodes", "12").split()[0],
+                        "chapters": data.get("chapters", "N/A"),
+                        "studio": data.get("studio", "N/A")
+                    }
+                )
 
-            edited_msg = bot.edit_message_media(
-                chat_id=call.message.chat.id,
-                message_id=call.message.message_id,
-                media=telebot.types.InputMediaPhoto(card_io, caption=caption_text, parse_mode="HTML"),
-                reply_markup=markup
-            )
+                edited_msg = bot.edit_message_media(
+                    chat_id=call.message.chat.id,
+                    message_id=call.message.message_id,
+                    media=telebot.types.InputMediaPhoto(card_io, caption=caption_text, parse_mode="HTML"),
+                    reply_markup=markup
+                )
 
-            if edited_msg and edited_msg.photo:
-                if "file_ids" not in data:
-                    data["file_ids"] = {}
-                data["file_ids"][current_index] = edited_msg.photo[-1].file_id
-
-        except Exception as e:
-            print(f"Media card update error: {e}")
-
-        try:
-            bot.answer_callback_query(call.id)
-        except Exception:
-            pass
-        return
+               if edited_msg and edited_msg.photo:
+                   if "file_ids" not in data:
+                       data["file_ids"] = {}
+                   data["file_ids"][current_index] = edited_msg.photo[-1].file_id
+ 
+           except Exception as e:
+               print(f"Media card update error: {e}")
+   
+           try:
+               bot.answer_callback_query(call.id)
+           except Exception:
+               pass
+           return
 
     if call.data.startswith("tr_select_"):
         try:
