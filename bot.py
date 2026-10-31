@@ -705,19 +705,19 @@ def handle_all_callbacks(call):
                     reply_markup=markup
                 )
 
-               if edited_msg and edited_msg.photo:
-                   if "file_ids" not in data:
-                       data["file_ids"] = {}
-                   data["file_ids"][current_index] = edited_msg.photo[-1].file_id
+                if edited_msg and edited_msg.photo:
+                    if "file_ids" not in data:
+                        data["file_ids"] = {}
+                    data["file_ids"][current_index] = edited_msg.photo[-1].file_id
  
-           except Exception as e:
-               print(f"Media card update error: {e}")
+            except Exception as e:
+                print(f"Media card update error: {e}")
    
-           try:
-               bot.answer_callback_query(call.id)
-           except Exception:
-               pass
-           return
+            try:
+                bot.answer_callback_query(call.id)
+            except Exception:
+                pass
+            return
 
     if call.data.startswith("tr_select_"):
         try:
