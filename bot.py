@@ -756,7 +756,6 @@ def handle_all_callbacks(call):
             print(f"Trending selection error: {e}")
         return
 
-
     if call.data == "check_fsub":
         if is_user_member(user_id):
             try:
@@ -1365,7 +1364,6 @@ def handle_airing_command(message):
     except Exception as e:
         bot.edit_message_text(f"⚠️ Error fetching airing data: <code>{html.escape(str(e))}</code>", message.chat.id, status_msg.message_id, parse_mode="HTML")
 
-
 # ------------------------ #
 # Don't Remove My Credits
 # Owner: @Mr_Mohammed_29
@@ -1479,7 +1477,6 @@ def handle_trending(message):
             media_type = item.get("media_type", "movie").upper()
             markup.add(InlineKeyboardButton(text=f"›› {title} [{media_type}]", callback_data=f"tr_select_{idx}"))
 
-        # Save to cache using chat id so the callback can read it safely
         SEARCH_CACHE[f"tr_{message.chat.id}"] = results
 
         bot.delete_message(message.chat.id, status_msg.message_id)
@@ -3421,11 +3418,9 @@ def send_style_poster_response(message, cmd, query, branding_name):
         item_id = str(item.get("id"))
         media_type = item.get("media_type", "tv")
         title = item.get("name") or item.get("title") or clean_query
-
         endpoint = "movie" if media_type == "movie" else "tv"
         details_url = f"https://api.themoviedb.org/3/{endpoint}/{item_id}?api_key={TMDB_API_KEY}&append_to_response=images,keywords"
         det_res = session.get(details_url, timeout=5).json()
-
         genres_list = [g["name"] for g in det_res.get("genres", [])]
         synopsis = det_res.get("overview") or item.get("overview") or "No synopsis available."
         vote_avg = det_res.get("vote_average", 8.4)
@@ -3517,7 +3512,6 @@ def send_style_poster_response(message, cmd, query, branding_name):
             "chapters": chap_str
         }
 
-        # Fetch Backdrops for Carousel Pagination
         images = det_res.get("images", {})
         backdrops = [f"https://image.tmdb.org/t/p/original{i['file_path']}" for i in images.get("backdrops", [])[:8]]
         posters = [f"https://image.tmdb.org/t/p/w500{i['file_path']}" for i in images.get("posters", [])[:3]]
@@ -3560,7 +3554,6 @@ def send_style_poster_response(message, cmd, query, branding_name):
         if total_pages == 0:
             total_pages = 1
 
-        # Save complete dataset into SEARCH_CACHE so pagination works smoothly
         SEARCH_CACHE[search_id] = {
             "title": title,
             "type": media_format,
