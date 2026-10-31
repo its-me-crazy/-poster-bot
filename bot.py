@@ -675,24 +675,28 @@ def handle_all_callbacks(call):
                 except ValueError:
                     raw_rating = 8.4
 
-            card_io = generate_custom_media_card(
-                poster_bytes=img_bytes,
-                portrait_bytes_list=p_bytes_list,
-                title=data.get("title", "Unknown"),
-                genres=genres_list,
-                synopsis=data.get("synopsis", ""),
-                rating_val=raw_rating,
-                logo_url=data.get("logo_url"),
-                branding=data.get("branding", "@Aero_Unity"),
-                style_type=style_type, # Passes the correct style layout generator
-                extra_meta={
-                    "media_format": data.get("type", "ANIME").upper(),
-                    "status": data.get("status", "RELEASING").upper(),
-                    "vote_average": raw_rating,
-                    "chapters": data.get("chapters", "N/A"),
-                    "studio": data.get("studio", "N/A")
-                }
-            )
+        card_io = generate_custom_media_card(
+            poster_bytes=img_bytes,
+            portrait_bytes_list=p_bytes_list,
+            title=data.get("title", "Unknown"),
+            genres=genres_list,
+            synopsis=data.get("synopsis", ""),
+            rating_val=raw_rating,
+            logo_url=data.get("logo_url"),
+            branding=data.get("branding", "@Aero_Unity"),
+            style_type=style_type, 
+            extra_meta={
+                "media_format": data.get("type", "ANIME").upper(),
+                "status": data.get("status", "RELEASING").upper(),
+                "vote_average": raw_rating,
+                "year": data.get("year", "2024"),
+                "season": data.get("season", "Season 1"),
+                "episodes": data.get("episodes", "12 Episodes"),
+                "ep_num": data.get("episodes", "12").split()[0],
+                "chapters": data.get("chapters", "N/A"),
+                "studio": data.get("studio", "N/A")
+            }
+        )
 
             edited_msg = bot.edit_message_media(
                 chat_id=call.message.chat.id,
@@ -3384,18 +3388,10 @@ def send_style_poster_response(message, cmd, query, branding_name):
             return
             
     style_names = {
-        "ani": "AniList Anime",
-        "anim": "AniList Manga",
-        "crun": "Crunchyroll",
-        "net": "Netflix Anime",
-        "netm": "Netflix Manga",
-        "light": "Light Cruise Anime",
-        "lightm": "Light Cruise Manga",
-        "dark": "Webtoon Flix Anime",
-        "darkm": "Webtoon Flix Manga",
-        "netcr": "Netflix x Crunchyroll",
-        "mod": "Modern Aero Anime",
-        "modm": "Modern Manga Aero"
+        "ani": "AniList Anime", "anim": "AniList Manga", "crun": "Crunchyroll",
+        "net": "Netflix Anime", "netm": "Netflix Manga", "light": "Light Cruise Anime",
+        "lightm": "Light Cruise Manga", "dark": "Webtoon Flix Anime", "darkm": "Webtoon Flix Manga",
+        "netcr": "Netflix x Crunchyroll", "mod": "Modern Aero Anime", "modm": "Modern Manga Aero"
     }
     style_label = style_names.get(cmd, branding_name)
     
@@ -3404,8 +3400,7 @@ def send_style_poster_response(message, cmd, query, branding_name):
         f"⚙️ <b>Generating {style_label} poster for <code>{html.escape(query)}</code>, please wait...</b>", 
         parse_mode="HTML"
     )
-    
-    time.sleep(2)
+    time.sleep(1)
     
     encoded_query = requests.utils.quote(clean_query)
     search_url = f"https://api.themoviedb.org/3/search/multi?api_key={TMDB_API_KEY}&query={encoded_query}&include_adult=true"
@@ -3425,7 +3420,7 @@ def send_style_poster_response(message, cmd, query, branding_name):
         item = results[0]
         item_id = str(item.get("id"))
         media_type = item.get("media_type", "tv")
-        title = item.get("name") or item.get("title") or query
+        title = item.get("name") or item.get("title") or clean_query
 
         endpoint = "movie" if media_type == "movie" else "tv"
         details_url = f"https://api.themoviedb.org/3/{endpoint}/{item_id}?api_key={TMDB_API_KEY}&append_to_response=images,keywords"
@@ -3436,19 +3431,11 @@ def send_style_poster_response(message, cmd, query, branding_name):
         vote_avg = det_res.get("vote_average", 8.4)
 
         KNOWN_STUDIOS = {
-            "co-mix wave films": "CoMix Wave Films",
-            "comix wave films": "CoMix Wave Films",
-            "a-1 pictures": "A-1 Pictures",
-            "wit studio": "Wit Studio",
-            "toei animation": "Toei Animation",
-            "bones": "Studio Bones",
-            "studio bones": "Studio Bones",
-            "madhouse": "Madhouse",
-            "studio ghibli": "Studio Ghibli",
-            "ghibli": "Studio Ghibli",
-            "ufotable": "Ufotable",
-            "kyoto animation": "Kyoto Animation",
-            "mappa": "MAPPA"
+            "co-mix wave films": "CoMix Wave Films", "comix wave films": "CoMix Wave Films",
+            "a-1 pictures": "A-1 Pictures", "wit studio": "Wit Studio", "toei animation": "Toei Animation",
+            "bones": "Studio Bones", "studio bones": "Studio Bones", "madhouse": "Madhouse",
+            "studio ghibli": "Studio Ghibli", "ghibli": "Studio Ghibli", "ufotable": "Ufotable",
+            "kyoto animation": "Kyoto Animation", "mappa": "MAPPA"
         }
 
         studio_str = "N/A"
@@ -3483,19 +3470,16 @@ def send_style_poster_response(message, cmd, query, branding_name):
             media_format = "MANHUA"
         elif "manga" in keywords:
             media_format = "MANGA"
-        elif any("adult" in g or "hentai" in g or "ecchi" in g for g in genre_names_lower):
-            media_format = "PORNHWA"
 
         raw_status = det_res.get("status", "Unknown").lower()
-        
-        if "ended" in raw_status or "returned" in raw_status or "released" in raw_status or "completed" in raw_status:
+        if "ended" in raw_status or "completed" in raw_status:
             status_str = "FINISHED"
-        elif "returning" in raw_status or "in production" in raw_status or "ongoing" in raw_status or "planned" in raw_status:
+        elif "returning" in raw_status or "in production" in raw_status or "ongoing" in raw_status:
             status_str = "ONGOING"
         else:
             status_str = raw_status.upper() if raw_status else "FINISHED"
 
-        release_date = item.get("release_date") or item.get("first_air_date") or ""
+        release_date = det_res.get("release_date") or det_res.get("first_air_date") or ""
         year_str = release_date.split("-")[0] if release_date else "2024"
         
         ep_count = 12
@@ -3504,7 +3488,12 @@ def send_style_poster_response(message, cmd, query, branding_name):
             try:
                 s_res = session.get(season_url, timeout=4)
                 if s_res.status_code == 200:
-                    ep_count = len(s_res.json().get("episodes", [])) or det_res.get("number_of_episodes", 12)
+                    s_data = s_res.json()
+                    ep_list = s_data.get("episodes", [])
+                    if ep_list:
+                        ep_count = len(ep_list)
+                    else:
+                        ep_count = det_res.get("number_of_episodes", 12)
                 else:
                     ep_count = det_res.get("number_of_episodes", 12)
             except Exception:
@@ -3513,35 +3502,6 @@ def send_style_poster_response(message, cmd, query, branding_name):
             ep_count = 1
 
         chap_str = f"{ep_count * 15}+" if ep_count else "700+"
-        
-        images = det_res.get("images", {})
-        backdrops = [f"https://image.tmdb.org/t/p/original{i['file_path']}" for i in images.get("backdrops", [])[:8]]
-        posters = [f"https://image.tmdb.org/t/p/w500{i['file_path']}" for i in images.get("posters", [])[:3]]
-
-        if not backdrops:
-            path = item.get("backdrop_path") or item.get("poster_path")
-            backdrops = [f"https://image.tmdb.org/t/p/original{path}"] if path else ["https://graph.org/file/faf795187aa693e1024a4-746b376c8dcc889d4f.jpg"]
-
-        img_bytes = session.get(backdrops[0], timeout=5).content
-        
-        if not posters and backdrops:
-            posters = backdrops[:3]
-
-        p_bytes_list = []
-        for p_url in posters[:3]:
-            try:
-                p_bytes_list.append(session.get(p_url, timeout=3).content)
-            except Exception:
-                pass
-                
-        if not p_bytes_list:
-            p_bytes_list = [img_bytes, img_bytes]
-
-        logo_url = get_tmdb_logo_url(item_id, endpoint)
-
-        release_date = det_res.get("release_date") or det_res.get("first_air_date") or ""
-        year_str = release_date.split("-")[0] if release_date else "N/A"
-        studio_str = studio_str if studio_str != "N/A" else (det_res.get("production_companies", [{}])[0].get("name", "Unknown"))
         media_season = f"Season {season_number}"
         media_episodes = f"{ep_count} Episodes"
 
@@ -3556,6 +3516,30 @@ def send_style_poster_response(message, cmd, query, branding_name):
             "ep_num": str(ep_count),
             "chapters": chap_str
         }
+
+        # Fetch Backdrops for Carousel Pagination
+        images = det_res.get("images", {})
+        backdrops = [f"https://image.tmdb.org/t/p/original{i['file_path']}" for i in images.get("backdrops", [])[:8]]
+        posters = [f"https://image.tmdb.org/t/p/w500{i['file_path']}" for i in images.get("posters", [])[:3]]
+
+        if not backdrops:
+            path = item.get("backdrop_path") or item.get("poster_path")
+            backdrops = [f"https://image.tmdb.org/t/p/original{path}"] if path else ["https://graph.org/file/faf795187aa693e1024a4-746b376c8dcc889d4f.jpg"]
+
+        img_bytes = session.get(backdrops[0], timeout=5).content
+        if not posters and backdrops:
+            posters = backdrops[:3]
+
+        p_bytes_list = []
+        for p_url in posters[:3]:
+            try:
+                p_bytes_list.append(session.get(p_url, timeout=3).content)
+            except Exception:
+                pass
+        if not p_bytes_list:
+            p_bytes_list = [img_bytes, img_bytes]
+
+        logo_url = get_tmdb_logo_url(item_id, endpoint)
 
         card_io = generate_custom_media_card(
             poster_bytes=img_bytes,
@@ -3572,10 +3556,11 @@ def send_style_poster_response(message, cmd, query, branding_name):
         
         search_id = str(message.message_id)
         current_index = 0
-        total_pages = len(backdrops) if backdrops else len(p_bytes_list)
+        total_pages = len(backdrops)
         if total_pages == 0:
             total_pages = 1
 
+        # Save complete dataset into SEARCH_CACHE so pagination works smoothly
         SEARCH_CACHE[search_id] = {
             "title": title,
             "type": media_format,
@@ -3584,8 +3569,8 @@ def send_style_poster_response(message, cmd, query, branding_name):
             "status": status_str,
             "chapters": chap_str,
             "synopsis": synopsis,
-            "artworks": backdrops if backdrops else [backdrops[0]],
-            "posters": posters if posters else [backdrops[0]],
+            "artworks": backdrops,
+            "posters": posters if posters else backdrops,
             "logo_url": logo_url,
             "style_type": cmd,             
             "branding": branding_name,
@@ -3595,17 +3580,11 @@ def send_style_poster_response(message, cmd, query, branding_name):
             "studio": studio_str,
             "file_ids": {}
         }
-    
-        media_title = title or "Unknown Title"
-        media_year = extra_metadata.get("year", "2024")
-        media_studio = studio_str
-        media_season = extra_metadata.get("season", "Current")
-        media_episodes = extra_metadata.get("episodes", "12 Episodes")
 
         caption_text = (
-            f"<b>✦ Tɪᴛʟᴇ : {html.escape(str(media_title))}</b>\n"
-            f"<b>✦ Yᴇᴀʀ : {media_year}</b>\n"
-            f"<b>✦ Sᴛᴜᴅɪᴏ : {html.escape(str(media_studio))}</b>\n"
+            f"<b>✦ Tɪᴛʟᴇ : {html.escape(str(title))}</b>\n"
+            f"<b>✦ Yᴇᴀʀ : {year_str}</b>\n"
+            f"<b>✦ Sᴛᴜᴅɪᴏ : {html.escape(str(studio_str))}</b>\n"
             f"<b>✦ Sᴇᴀsᴏɴ : {media_season}</b>\n"
             f"<b>✦ Eᴘɪsᴏᴅᴇs : {media_episodes}</b>\n\n"
             f"<b>››Pᴏᴡᴇʀᴇᴅ Bʏ : <a href=\"https://t.me/Aero_Unity\">Aᴇʀᴏ Uɴɪᴛʏ</a></b>"
@@ -3641,7 +3620,7 @@ def send_style_poster_response(message, cmd, query, branding_name):
         except Exception:
             pass
         bot.reply_to(message, f"⚠️ An error occurred: <code>{html.escape(str(e))}</code>", parse_mode="HTML")
-
+        
 # ------------------------ #
 # Don't Remove My Credits
 # Owner: @Mr_Mohammed_29
